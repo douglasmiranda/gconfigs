@@ -13,7 +13,7 @@ with open('HISTORY.rst') as history_file:
 
 setup(
     name='gconfigs',
-    version='0.1.0',
+    version='0.1.1',
     description="gConfigs - Config and Secret parser for your Python projects.",
     long_description=readme + '\n\n' + history,
     author="Douglas Miranda",
