@@ -1,0 +1,11 @@
+version: "3.5"
+
+services:
+  # docker-compose run --rm gconfigs
+  gconfigs:
+    build: ./
+    volumes:
+      - "./:/gconfigs"
+    command:
+      - make
+      - full_test
