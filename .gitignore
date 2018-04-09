@@ -34,9 +34,6 @@ coverage.xml
 # pyenv
 .python-version
 
-# dotenv
-.env
-
 # virtualenv
 .venv
 venv/
