@@ -393,8 +393,8 @@ If you use an iterator once, you can't iterate again, but if you want you can ca
 Extra Goodies
 =============
 
-* How many configs with Python built-in `len`.
-* Config key exists with Python built-in `in`.
+* How many configs with Python built-in ``len``.
+* Config key exists with Python built-in ``in``.
 * Output your key-value configs as JSON.
 
 .. code-block:: pycon
