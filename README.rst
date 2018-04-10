@@ -10,6 +10,10 @@ gConfigs - Config and Secret parser
         :alt: Badge Travis Build
         :target: https://travis-ci.org/douglasmiranda/gconfigs
 
+.. image:: https://coveralls.io/repos/github/douglasmiranda/gconfigs/badge.svg
+        :alt: Badge Coveralls - Coverage Status
+        :target: https://coveralls.io/github/douglasmiranda/gconfigs
+
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
         :alt: Code style: black
         :target: https://github.com/ambv/black
