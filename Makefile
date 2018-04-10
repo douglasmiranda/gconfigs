@@ -24,14 +24,11 @@ clean-test: ## remove test and coverage artifacts
 	rm -fr htmlcov/
 	rm -fr .pytest_cache/
 
-format_diff: ## use black to show diff of formatted code
-	pipenv run black --diff gconfigs/ tests/
-
 format: ## format code using black (https://github.com/ambv/black)
 	pipenv run black gconfigs/ tests/
 
-lint: ## check style with flake8
-	pipenv run flake8 gconfigs tests
+lint: ## use black to show diff of formatted code
+	pipenv run black --diff gconfigs/ tests/
 
 test: ## run tests quickly with the default Python
 	pipenv run pytest gconfigs tests/ -s
@@ -42,7 +39,7 @@ coverage: ## run tests quickly with the default Python
 
 full_test: ## check style, run tests and show coverage reports
 	@printf "\033[34m$1Step 1 - Cheking Code Style With Black. (If there's something that could look better you will see the diff)\033[0m\n"
-	@$(MAKE) format_diff
+	@$(MAKE) lint
 	@printf "\033[34m$1Step 2 - Running Tests. (Wait for coverage report)\033[0m\n"
 	@$(MAKE) coverage
 	@printf "\033[34m$1Step 3 - Cleaning Coverage Files\033[0m\n"

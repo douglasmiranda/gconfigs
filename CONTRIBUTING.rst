@@ -54,6 +54,7 @@ If you are proposing a feature:
 * Remember that this is a volunteer-driven project, and that contributions
   are welcome :)
 
+
 Get Started!
 ------------
 
@@ -78,8 +79,7 @@ Ready to contribute? Here's how to set up `gConfigs` for local development.
 5. When you're done making changes, make sure everything is formated properly,
    check that your changes pass flake8 and the tests::
 
-    $ make lint
-    $ make format_diff # this will use black to show you the diff of the formatted code
+    $ make lint # this will use black to show you the diff of the formatted code
     $ make format # this will use black to format the code
     $ make test
     $ make coverage # this will show you if you're not missing something on tests.
@@ -95,6 +95,7 @@ Ready to contribute? Here's how to set up `gConfigs` for local development.
 
 7. Submit a pull request through the GitHub website.
 
+
 Pull Request Guidelines
 -----------------------
 
@@ -108,12 +109,13 @@ Before you submit a pull request, check that it meets these guidelines:
    https://travis-ci.org/douglasmiranda/gconfigs/pull_requests
    and make sure that the tests pass for all supported Python versions.
 
+
 Tips
 ----
 
 To run a subset of tests::
 
-    $ py.test tests.test_gconfigs
+    $ py.test tests.test_gconfigs_api
 
 
 Deploying
@@ -126,5 +128,5 @@ Then run::
     $ bumpversion patch # possible: major / minor / patch
     $ git push
     $ git push --tags
-
-(If travis is not configured to auto deploy, just push manually with setup.py and twine)
+    $ make dist
+    $ make upload
