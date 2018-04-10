@@ -6,7 +6,7 @@ python:
 
 install: pip install pipenv; pipenv install --dev
 
-script: pipenv run pytest
+script: pipenv run coverage run --source gconfigs -m pytest tests/
 after_success:
   - coveralls
 notifications:
