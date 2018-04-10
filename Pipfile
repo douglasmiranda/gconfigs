@@ -12,6 +12,7 @@ twine = "*"
 pytest = "*"
 pytest-runner = "*"
 black = "==18.4a0"
+coveralls = "*"
 
 [requires]
 python_version = "3.6"

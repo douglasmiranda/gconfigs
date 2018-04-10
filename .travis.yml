@@ -1,11 +1,14 @@
 # Config file for automatic testing at travis-ci.org
-# This file will be regenerated if you run travis_pypi_setup.py
 
 language: python
 python:
   - 3.6
 
-install: pip install pipenv; pipenv lock; pipenv install --dev
+install: pip install pipenv; pipenv install --dev
 
-# Command to run tests, e.g. python setup.py test
 script: pipenv run pytest
+after_success:
+  - coveralls
+notifications:
+  on_success: change
+  on_failure: always
