@@ -1,6 +1,12 @@
-###################################
-gConfigs - Config and Secret parser
-###################################
+#################################################
+Config and Secret parser for your Python projects
+#################################################
+
+.. image:: https://github.com/douglasmiranda/gconfigs/blob/master/.github/gconfigs-logo.png?raw=true
+        :alt: gConfigs - Config and Secret parser for your Python projects
+        :target: https://github.com/douglasmiranda/gconfigs
+
+|
 
 .. image:: https://img.shields.io/pypi/v/gconfigs.svg
         :alt: Badge Version
@@ -21,9 +27,7 @@ gConfigs - Config and Secret parser
 .. image:: https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg
         :alt: Just Say Thanks if you like gConfigs
         :target: https://saythanks.io/to/douglasmiranda
-
-
-gConfigs - Config and Secret parser for your Python projects.
+|
 
 Let me show you some code:
 
@@ -60,8 +64,8 @@ Let me show you some code:
 
 **This is experimental, so you know, use at your own risk.**
 
-
-.. contents:: Table of Contents
+.. contents:: **Table of Contents**
+   :local:
 
 
 Features
