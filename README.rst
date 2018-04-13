@@ -27,11 +27,12 @@ Config and Secret parser for your Python projects
 .. image:: https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg
         :alt: Just Say Thanks if you like gConfigs
         :target: https://saythanks.io/to/douglasmiranda
+
 |
 
 Let me show you some code:
 
-.. code-block:: python
+.. code-block::python
 
     from gconfigs import envs, configs, secrets
 
@@ -41,7 +42,7 @@ Let me show you some code:
     DATABASE_PASS = secrets('DATABASE_PASS')
 
 
-.. code-block:: pycon
+.. code-block::pycon
 
     >>> # envs, configs and secrets are iterables
     >>> from gconfigs import envs
@@ -86,7 +87,7 @@ Installation
 
 To install gConfigs, run this command in your terminal:
 
-.. code-block:: console
+.. code-block::console
 
     $ pip install gconfigs
     $ # or
@@ -114,7 +115,7 @@ Environment Variables
 
 So, there are good reasons to **not** use environment variables for your configs, but if you want / need to use, please just not use for sensitive data, like: passwords, secret keys, private tokens and stuff like that.
 
-.. code-block:: pycon
+.. code-block::pycon
 
     >>> from gconfigs import envs
     # contents from ``envs`` are just data from ``os.environ``
@@ -139,7 +140,7 @@ For ``configs``, *gConfigs* will look for mouted files at **/run/configs**, for 
     File Name: LANGUAGE_CODE
     File Contents: en-us
 
-.. code-block:: python
+.. code-block::python
 
     from gconfigs import configs
     LANGUAGE_CODE = configs('LANGUAGE_CODE')
@@ -148,7 +149,7 @@ For ``configs``, *gConfigs* will look for mouted files at **/run/configs**, for 
 
 Of course you can change the path that *gConfigs* will look for your configs. Let's suppose your configs are mouted at **/configs**:
 
-.. code-block:: python
+.. code-block::python
 
     from gconfigs import configs
     configs.root_dir = '/configs'
@@ -165,7 +166,7 @@ It follows the same flow as ``configs``, so for more details go to ``configs``.
 
 For ``secrets``, *gConfigs* will look for mouted files at **/run/secrets**.
 
-.. code-block:: python
+.. code-block::python
 
     from gconfigs import secrets
     POSTGRES_PASSWORD = secrets('POSTGRES_PASSWORD')
@@ -189,7 +190,7 @@ For ``secrets``, *gConfigs* will look for mouted files at **/run/secrets**.
 
 You could just put your configurations in a file called **.env**, (or whatever name you want), for example the contents of your file would be:
 
-.. code-block:: INI
+.. code-block::INI
 
     ROOT=/
     PROJECT_NAME=gConfigs - Config and Secret parser
@@ -197,7 +198,7 @@ You could just put your configurations in a file called **.env**, (or whatever n
 
 After that I'm going to save my **.env** file in **/app/**, then the full path will be **/app/.env**, now let's see how to load all it's contents in *gConfigs*:
 
-.. code-block:: python
+.. code-block::python
 
     from gconfigs import dotenvs
     dotenvs.load_file('/app/.env')
@@ -231,7 +232,7 @@ default value
 
 You can provide a default value, in case the backend couldn't return the config.
 
-.. code-block:: pycon
+.. code-block::pycon
 
     >>> from gconfigs import envs
     >>> envs('WHATEVER', default='/')
@@ -247,7 +248,7 @@ Generally backends will return key and value as strings, but you can return othe
 
 For example when providing a ``default`` value you could set a ``int``:
 
-.. code-block:: pycon
+.. code-block::pycon
 
     >>> from gconfigs import envs
     >>> envs('WORKERS', default=1)
@@ -271,7 +272,7 @@ BOOLEAN - Converting to bool
 
 Let's say you want ``DEBUG`` as a boolean.
 
-.. code-block:: pycon
+.. code-block::pycon
 
     >>> from gconfigs import envs
     >>> envs.as_bool('DEBUG')
@@ -285,7 +286,7 @@ LIST - Converting to list
 
 Let's say you have a configuration value like this:
 
-.. code-block:: bash
+.. code-block::bash
 
     [1, 2.1, "string-value", true]
 
@@ -294,7 +295,7 @@ Let's say you have a configuration value like this:
 
 The value must be just JSON-like, which is very close to a list in Python. And you will be able to get a list object by doing:
 
-.. code-block:: pycon
+.. code-block::pycon
 
     >>> from gconfigs import envs
     >>> envs.as_list('CONFIG-LIST')
@@ -308,7 +309,7 @@ If you have a value that is basically a JSON valid object, you may already know 
 
 Here is an example, if your config value is:
 
-.. code-block:: bash
+.. code-block::bash
 
     {"endpoint": "/", "workers": 1, "debug": true}
 
@@ -316,7 +317,7 @@ Here is an example, if your config value is:
     export CONFIG_DICT='{"endpoint": "/", "workers": 1, "debug": true}'
 
 
-.. code-block:: pycon
+.. code-block::pycon
 
     >>> from gconfigs import envs
     >>> envs.as_list('CONFIG-LIST')
@@ -330,7 +331,7 @@ OTHER TYPES - Converting to int, float, tuple, str, set
 
 Well let's not reinvent the wheel, like I said before, most backends will return string by default, so if we have something like:
 
-.. code-block:: bash
+.. code-block::bash
 
     WORKERS="1"
     WEIGHT="1.1"
@@ -338,7 +339,7 @@ Well let's not reinvent the wheel, like I said before, most backends will return
 
 We could then do this:
 
-.. code-block:: pycon
+.. code-block::pycon
 
     >>> from gconfigs import envs
     >>> int(envs('WORKERS'))
@@ -348,7 +349,7 @@ We could then do this:
 
 If you want ``tuple`` or ``set``, just get as list and then do whatever you want:
 
-.. code-block:: pycon
+.. code-block::pycon
 
     >>> from gconfigs import envs
     >>> tuple(envs.as_list('MODULES'))
@@ -358,7 +359,7 @@ If you want ``tuple`` or ``set``, just get as list and then do whatever you want
 
 What about strings? If you getting from your backend config values that aren't strings, and for some of them you need to convert to ``str``, just use the Python built-in ``str()``:
 
-.. code-block:: pycon
+.. code-block::pycon
 
     >>> from gconfigs import envs
     >>> envs('AN-INT-CONFIG')  # if this return an integer
@@ -370,7 +371,7 @@ What about strings? If you getting from your backend config values that aren't s
 Interators
 ==========
 
-.. code-block:: pycon
+.. code-block::pycon
 
     >>> from gconfigs import envs
     >>> list(envs)  # envs is a iterator
@@ -388,7 +389,7 @@ Interators
 
 If you use an iterator once, you can't iterate again, but if you want you can call `.iterator()` and get a new one:
 
-.. code-block:: pycon
+.. code-block::pycon
 
     >>> iter_envs = envs.iterator()
     >>> for env in iter_envs:
@@ -405,7 +406,7 @@ Extra Goodies
 * Config key exists with Python built-in ``in``.
 * Output your key-value configs as JSON.
 
-.. code-block:: pycon
+.. code-block::pycon
 
     >>> from gconfigs import envs
     >>> len(envs)
@@ -438,7 +439,7 @@ Okay let's create a practical example of how to override the behaviour of one of
 
 If you get your Configs and Secrets with ``gconfigs.configs`` and ``gconfigs.secrets``, you are making use of ``gconfigs.LocalMountFile`` backend. That being said we could extend ``gconfigs.LocalMountFile`` and make it only get the configs if they are a *mount point*.
 
-.. code-block:: python
+.. code-block::python
 
     from gconfigs import GConfigs, LocalMountFile
     import os
@@ -470,7 +471,7 @@ If you want to extend the usage of *gConfigs* with other backends, it's not a ha
 
 Imagine my configs are stored in Redis (a key-value store), a backend for this would look like:
 
-.. code-block:: python
+.. code-block::python
 
     class RedisBackend:
         """Redis Backend for gConfigs
