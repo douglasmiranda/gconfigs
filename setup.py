@@ -15,7 +15,7 @@ history = Path("HISTORY.rst").read_text()
 
 setup(
     name="gconfigs",
-    version="0.1.1",
+    version="version='0.1.2'",
     description="gConfigs - Config and Secret parser for your Python projects.",
     long_description=f"{readme}\n\n{history}",
     author="Douglas Miranda",
