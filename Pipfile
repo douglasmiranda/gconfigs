@@ -13,6 +13,7 @@ pytest = "*"
 pytest-runner = "*"
 black = "==18.4a0"
 coveralls = "*"
+pygments = "*"
 
 [requires]
 python_version = "3.6"
