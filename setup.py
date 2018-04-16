@@ -25,7 +25,7 @@ setup(
     include_package_data=True,
     license="MIT license",
     zip_safe=False,
-    keywords="gconfigs configs environment secrets dotenv",
+    keywords="gconfigs configs environment secrets dotenv 12-factor",
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Developers",
