@@ -161,6 +161,28 @@ def test_get_and_cast_value():
         configs.as_list("CONFIG-LIST-STRING-JSON-STYLE-BROKEN")
 
 
+def test_backend_with_load_file_method():
+    """ Testing backend with ``load_file(filepath: str)`` method
+    I just need a backend with the ``load_file(filepath: str)``
+    and test if ```load_file(filepath: str)`` will also be available in a
+    instance of ``GConfigs()``.
+
+    The actual test of how ``load_file`` works it's
+    """
+    class DummyBackendLoadFile(DummyBackend):
+        def load_file(self, filepath):
+            pass
+
+    configs = GConfigs(backend=DummyBackendLoadFile)
+    assert configs.load_file
+    configs.load_file("foo")
+
+    # Instances of ``Gconfigs``, using backends with
+    # no ``load_file(filepath: str)`` should not have a ``load_file`` itself.
+    with pytest.raises(AttributeError, match=r".*'GConfigs' object has no attribute 'load_file'.*"):
+        GConfigs(backend=DummyBackend).load_file
+
+
 def test_iterator():
     configs = GConfigs(backend=DummyBackend)
     # iterate with forloop
