@@ -19,7 +19,7 @@ setup(
     description="gConfigs - Config and Secret parser for your Python projects.",
     long_description=f"{readme}\n\n{history}",
     author="Douglas Miranda",
-    author_email="douglasmirandasilva@gmail.com",
+    author_email="douglascoding@gmail.com",
     url="https://github.com/douglasmiranda/gconfigs",
     packages=find_packages(include=["gconfigs"]),
     include_package_data=True,
@@ -27,10 +27,10 @@ setup(
     zip_safe=False,
     keywords="gconfigs configs environment secrets dotenv 12-factor",
     classifiers=[
-        "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
         "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
     ],
 )
