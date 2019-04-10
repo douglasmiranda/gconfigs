@@ -83,6 +83,20 @@ def test_get_configs_info():
     assert configs("NON-EXISTENT-CONFIG", default=False) is False
 
 
+def test_get_configs_use_instead():
+    configs = GConfigs(backend=DummyBackend)
+
+    # First key doesn't exist, use key/config "CONFIG-1" instead
+    assert configs("NON-EXISTENT-CONFIG", use_instead="CONFIG-1") == "config-1"
+    # neither key nor use_instead exist, so use the default
+    assert configs("NON-EXISTENT-CONFIG", use_instead="NON-EXISTENT-CONFIG-2", default="abc") == "abc"
+
+    # if we don't have a default value; and key and use_instead doesn't exist;
+    # we get a KeyError about the use_instead key not found.
+    with pytest.raises(KeyError, match=r".*'NON-EXISTENT-CONFIG-2' not set.*"):
+        assert configs("NON-EXISTENT-CONFIG", use_instead="NON-EXISTENT-CONFIG-2")
+
+
 def test_get_configs_strip_value_or_not():
     configs = GConfigs(backend=DummyBackend)
     assert configs.strip

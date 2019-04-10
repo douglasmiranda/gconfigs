@@ -34,23 +34,28 @@ class GConfigs:
 
         self._iter_configs = self.iterator()
 
-    def get(self, key, default=NOTSET, strip=None, **kwargs):
+    def get(self, key, default=NOTSET, use_instead=NOTSET, strip=None, **kwargs):
         """Return value for given key.
         :param var: Key (Name) of config.
         :param default: If backend doesn't return valid config, return this instead.
+        :param use_instead: If `key` doesn't exist use the alternative key `use_instead`.
         :param strip: Control the stripping of return value. Override the default `self.strip` with `True` or `False`. Will strip if is a string value.
 
         :returns: Parsed value or default. Or raises exceptions you implement in your backend.
         """
+
         try:
             value = self._backend.get(key)
+        # This may seem a generic try/except but I'm actually catching the
+        # specific Exception that you will implement in your backend.
         except Exception as e:
-            # This may seem a generic try/except but I'm actually catching the
-            # specific Exception that you will implement in your backend.
+            if use_instead is not NOTSET:
+                return self.get(use_instead, default, NOTSET, strip, **kwargs)
+
             if default is NOTSET:
                 raise e
 
-            return default
+            value = default
 
         strip_ = self.strip if strip is None else strip
         if strip_ and isinstance(value, str):

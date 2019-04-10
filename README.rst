@@ -226,6 +226,19 @@ I'll be using envs in the examples, but it should work for all built-in backends
 Get Your Config Value
 =====================
 
+use another key if the first one doesn't exist
+----------------------------------------------
+
+Use another key in case the first doesn't exist. It's like a default value but instead of a value, you use the `use_instead`
+parameter to inform a key to be used when `key` is not found.
+
+.. code-block:: pycon
+
+    >>> from gconfigs import envs
+    >>> envs('NON-EXISTENT-ENV', use_instead='USE-THIS-ENV-INSTEAD')
+    '/'
+    >>> user_or_host = envs('USER', use_instead='HOSTNAME')
+
 
 default value
 -------------
@@ -238,6 +251,16 @@ You can provide a default value, in case the backend couldn't return the config.
     >>> envs('WHATEVER', default='/')
     '/'
 
+use_instead + default
+---------------------
+
+It's simple, if both `key` and `use_instead` doesn't exist, the `default` value will be used.
+
+.. code-block:: pycon
+
+    >>> from gconfigs import envs
+    >>> envs('NON-EXISTENT-ENV', use_instead='NON-EXISTENT-ENV-2', default='hello')
+    'hello'
 
 typed value
 -----------
