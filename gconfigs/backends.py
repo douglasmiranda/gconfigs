@@ -113,11 +113,6 @@ class DotEnv:
 
                 self._data[key] = value.rstrip("\r\n")
 
-        if not self._data:
-            raise Exception(
-                f"You have no configs to look for. You need to load your {self._dotenv_file} file."
-            )
-
 
 class RootDirectoryNotFound(FileNotFoundError):
     pass

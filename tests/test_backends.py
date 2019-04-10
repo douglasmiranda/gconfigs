@@ -69,8 +69,9 @@ def test_dotenv():
         assert backend.get(key)
 
     # Empty .env file
-    with pytest.raises(Exception, match=r".*You have no configs to look for.*"):
-        backend.load_file("./tests/files/config-files/.env-empty")
+    backend.load_file("./tests/files/config-files/.env-empty")
+    assert not backend.keys()
+
 
     with pytest.raises(FileNotFoundError):
         backend.load_file("./tests/files/config-files/NON-EXISTENT-DOTENV-FILE")
