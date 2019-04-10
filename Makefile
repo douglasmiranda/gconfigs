@@ -25,17 +25,17 @@ clean-test: ## remove test and coverage artifacts
 	rm -fr .pytest_cache/
 
 format: ## format code using black (https://github.com/ambv/black)
-	pipenv run black gconfigs/ tests/
+	poetry run black gconfigs/ tests/
 
 lint: ## use black to show diff of formatted code
-	pipenv run black --diff gconfigs/ tests/
+	poetry run black --diff gconfigs/ tests/
 
 test: ## run tests quickly with the default Python
-	pipenv run pytest gconfigs tests/ -s
+	poetry run pytest gconfigs tests/ -s
 
 coverage: ## run tests quickly with the default Python
-	pipenv run coverage run --source gconfigs -m pytest tests/
-	pipenv run coverage report -m
+	poetry run coverage run --source gconfigs -m pytest tests/
+	poetry run coverage report -m
 
 full_test: ## check style, run tests and show coverage reports
 	@printf "\033[34m$1Step 1 - Cheking Code Style With Black. (If there's something that could look better you will see the diff)\033[0m\n"
@@ -46,12 +46,12 @@ full_test: ## check style, run tests and show coverage reports
 	@$(MAKE) clean-test
 
 release: clean ## package and upload a release
-	pipenv run python setup.py sdist upload
-	pipenv run python setup.py bdist_wheel upload
+	poetry run python setup.py sdist upload
+	poetry run python setup.py bdist_wheel upload
 
 dist: clean ## builds source and wheel package
-	pipenv run python setup.py sdist
-	pipenv run python setup.py bdist_wheel
+	poetry run python setup.py sdist
+	poetry run python setup.py bdist_wheel
 	ls -l dist
 
 readme: ## make readme with rst2html.py, output: ./tmp/output.html

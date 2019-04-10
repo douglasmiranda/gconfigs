@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "gconfigs"
+version = "0.1.4"
+description = "Config and Secret parser for your Python projects"
+authors = ["Douglas Miranda <douglascoding@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+
+[tool.poetry.dev-dependencies]
+black = "=19.3b0"
+bumpversion = "^0.5.3"
+coverage = "^4.5"
+twine = "^1.13"
+pytest = "^4.4"
+runner = "^1.1"
+coveralls = "^1.7"
+pygments = "^2.3"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
