@@ -210,7 +210,7 @@ After that I'm going to save my **.env** file in **/app/**, then the full path w
 NOTES:
   * if it's a .ini syntax it will be parsed, but it will ignore sections
   * duplicated keys will be overridden by the latest value
-  * inexistent keys or empty files will raise exception
+  * inexistent keys will raise exception
   * all values load as strings, use casting to convert them
   * didn't like the name ``dotenvs``? Just do: ``from gconfigs import dotenvs as configs``
 
