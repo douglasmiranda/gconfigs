@@ -4,9 +4,9 @@ language: python
 python:
   - 3.6
 
-install: pip install pipenv; pipenv install --dev
+install: pip install --user poetry; poetry install
 
-script: pipenv run coverage run --source gconfigs -m pytest tests/
+script: poetry run coverage run --source gconfigs -m pytest tests/
 after_success:
   - coveralls
 notifications:
