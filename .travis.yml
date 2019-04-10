@@ -4,7 +4,7 @@ language: python
 python:
   - 3.6
 
-install: pip install --user poetry; poetry install
+install: pip install poetry; poetry install
 
 script: poetry run coverage run --source gconfigs -m pytest tests/
 after_success:
