@@ -14,7 +14,6 @@ import json
 
 
 def test_bad_instatiation():
-
     class MissingGet:
         pass
 
@@ -52,7 +51,9 @@ def test_basics():
     configs_.__len__
     configs_.__repr__
 
-    assert configs_.object_type_name == "KeyValue", "'object_type_name' default value should be 'KeyValue'"
+    assert (
+        configs_.object_type_name == "KeyValue"
+    ), "'object_type_name' default value should be 'KeyValue'"
     assert configs_.strip, "'strip' default value should be boolean 'True'"
 
     configs = GConfigs(backend=DummyBackend, object_type_name="DummyConfig")
@@ -86,29 +87,29 @@ def test_get_configs_strip_value_or_not():
     configs = GConfigs(backend=DummyBackend)
     assert configs.strip
     # strip default: True
-    assert configs(" white space key ") == "white space value" and configs(
-        "space-only-value"
-    ) == "", "Returning value should be stripped."
+    assert (
+        configs(" white space key ") == "white space value"
+        and configs("space-only-value") == ""
+    ), "Returning value should be stripped."
     # override default
-    assert configs(
-        " white space key ", strip=False
-    ) == " white space value " and configs(
-        "space-only-value", strip=False
-    ) == "  ", "Returning value should ALLOW blank spaces."
+    assert (
+        configs(" white space key ", strip=False) == " white space value "
+        and configs("space-only-value", strip=False) == "  "
+    ), "Returning value should ALLOW blank spaces."
 
     # no strip
     configs2 = GConfigs(backend=DummyBackend, strip=False)
     assert configs2.strip is False
     # strip default: False
-    assert configs2(" white space key ") == " white space value " and configs2(
-        "space-only-value"
-    ) == "  ", "Returning value should ALLOW blank spaces."
+    assert (
+        configs2(" white space key ") == " white space value "
+        and configs2("space-only-value") == "  "
+    ), "Returning value should ALLOW blank spaces."
     # override default
-    assert configs2(
-        " white space key ", strip=True
-    ) == "white space value" and configs2(
-        "space-only-value", strip=True
-    ) == "", "Returning value should be stripped."
+    assert (
+        configs2(" white space key ", strip=True) == "white space value"
+        and configs2("space-only-value", strip=True) == ""
+    ), "Returning value should be stripped."
     configs2.strip = True
     assert configs2.strip
 
@@ -169,6 +170,7 @@ def test_backend_with_load_file_method():
 
     The actual test of how ``load_file`` works it's
     """
+
     class DummyBackendLoadFile(DummyBackend):
         def load_file(self, filepath):
             pass
@@ -179,7 +181,9 @@ def test_backend_with_load_file_method():
 
     # Instances of ``Gconfigs``, using backends with
     # no ``load_file(filepath: str)`` should not have a ``load_file`` itself.
-    with pytest.raises(AttributeError, match=r".*'GConfigs' object has no attribute 'load_file'.*"):
+    with pytest.raises(
+        AttributeError, match=r".*'GConfigs' object has no attribute 'load_file'.*"
+    ):
         GConfigs(backend=DummyBackend).load_file
 
 
@@ -188,15 +192,15 @@ def test_iterator():
     # iterate with forloop
     for config in configs:
         # Make sure the object is a namedtuple
-        assert issubclass(
-            config.__class__, tuple
-        ) and config._fields, "Looks like the iterator is not returning a namedtuple anymore."
+        assert (
+            issubclass(config.__class__, tuple) and config._fields
+        ), "Looks like the iterator is not returning a namedtuple anymore."
         assert config
         assert config.key
         # guarantee the namedtuple is being properly created
-        assert configs(
-            config.key
-        ) == config.value, "Looks like the namedtuple is not being properly created."
+        assert (
+            configs(config.key) == config.value
+        ), "Looks like the namedtuple is not being properly created."
 
     # after an iterate in forloops it should have nothing left for next()
     with pytest.raises(StopIteration):

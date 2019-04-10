@@ -30,7 +30,6 @@ import os
 
 
 class LocalEnv:
-
     def keys(self):
         return os.environ.keys()
 
@@ -46,7 +45,6 @@ class LocalEnv:
 
 
 class LocalMountFile:
-
     def __init__(self, root_dir="/", pattern="*"):
         self.pattern = pattern
         self.root_dir = root_dir
@@ -81,7 +79,6 @@ class LocalMountFile:
 
 
 class DotEnv:
-
     def keys(self):
         return self._data.keys()
 

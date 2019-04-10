@@ -51,9 +51,9 @@ def test_dotenv():
 
     assert backend.get("CONFIG-1") == "config-1"
     assert "config-key-with-spaces" in backend.keys(), "Keys must be stripped."
-    assert backend.get(
-        "config-value-with-spaces"
-    ) == " config value with spaces", "values should NOT be stripped."
+    assert (
+        backend.get("config-value-with-spaces") == " config value with spaces"
+    ), "values should NOT be stripped."
 
     assert "COMMENTED-CONFIG" not in backend.keys()
     assert backend.get("CONFIG-EMPTY-VALUE") == "", "Empty values must be empty string."

@@ -5,7 +5,6 @@ import json
 
 
 class NoValue:
-
     def __repr__(self):  # pragma: no cover
         return f"<{self.__class__.__name__}>"
 
@@ -14,7 +13,6 @@ NOTSET = NoValue()
 
 
 class GConfigs:
-
     def __init__(self, backend, strip=True, object_type_name="KeyValue"):
         """
         :param backend: Backend / parser of configs. A simple class implementing `get` and `keys` methods. `gconfigs.backends` for more information.

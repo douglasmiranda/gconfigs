@@ -15,7 +15,6 @@ class DummyBackend:
         # ref: https://www.python.org/dev/peps/pep-0351/
 
         class ImmutableDict(dict):
-
             def __hash__(self):
                 return id(self)
 
