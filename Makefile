@@ -55,7 +55,7 @@ dist: clean ## builds source and wheel package
 	ls -l dist
 
 readme: ## make readme with rst2html.py, output: ./tmp/output.html
-	pipenv run python setup.py --long-description | pipenv run rst2html.py - > ./tmp/output.html
+	poetry run python setup.py --long-description | poetry run rst2html.py - > ./tmp/output.html
 
 install: clean ## install the package to the active Python's site-packages
-	pipenv run python setup.py install
+	poetry run python setup.py install
