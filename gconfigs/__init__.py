@@ -33,7 +33,7 @@ Nothing shows better than some snippets:
 """
 
 __author__ = """Douglas Miranda"""
-__email__ = "douglasmirandasilva@gmail.com"
+__email__ = "douglascoding@gmail.com"
 __version__ = "0.1.4"
 
 
