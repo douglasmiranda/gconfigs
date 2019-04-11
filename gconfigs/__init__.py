@@ -34,7 +34,7 @@ Nothing shows better than some snippets:
 
 __author__ = """Douglas Miranda"""
 __email__ = "douglascoding@gmail.com"
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 
 
 from .gconfigs import GConfigs

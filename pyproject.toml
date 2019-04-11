@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gconfigs"
-version = "0.1.4"
+version = "0.1.5"
 description = "Config and Secret parser for your Python projects"
 authors = ["Douglas Miranda <douglascoding@gmail.com>"]
 license = "MIT"
