@@ -1,23 +1,88 @@
-[tool.poetry]
+[project]
 name = "gconfigs"
-version = "0.1.4"
-description = "Config and Secret parser for your Python projects"
-authors = ["Douglas Miranda <douglascoding@gmail.com>"]
+version = "1.0.1"
+description = "gConfigs - Configuration helper for Python applications."
+authors = [
+    { name = "Douglas Miranda", email = "douglasmirandasilva@gmail.com" },
+]
+requires-python = ">=3.8"
+keywords = [
+    "gconfigs",
+    "configuration",
+    "environment variables",
+    "env",
+    "dotenv",
+    "secrets",
+    "parser",
+]
 license = "MIT"
+license-files = ["LICENSE-MIT"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Utilities",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+readme = "README.md"
 
-[tool.poetry.dependencies]
-python = "^3.6"
+[project.urls]
+Repository = "https://github.com/douglasmiranda/gconfigs"
+Documentation = "https://github.com/douglasmiranda/gconfigs/blob/main/README.md"
+Changelog = "https://github.com/douglasmiranda/gconfigs/blob/main/CHANGELOG"
+Releases = "https://github.com/douglasmiranda/gconfigs/releases"
+PyPI = "https://pypi.org/project/gconfigs"
 
-[tool.poetry.dev-dependencies]
-black = "=19.3b0"
-bumpversion = "^0.5.3"
-coverage = "^4.5"
-twine = "^1.13"
-pytest = "^4.4"
-runner = "^1.1"
-coveralls = "^1.7"
-pygments = "^2.3"
+[dependency-groups]
+dev = [{ include-group = "test" }, "ruff>=0.15.12"]
+test = ["pytest>=7.0.1", "pytest-cov>=4.0.0"]
+
+[tool.uv]
+default-groups = "all"
+cache-keys = [
+    { file = "pyproject.toml" }, # Rebuild if the project config changes.
+    { file = "uv.toml" },        # Rebuild if the uv config changes.
+    { file = "uv.lock" },        # Rebuild if exact dependency versions change.
+    { dir = "src" },             # Rebuild on library source edits.
+    { dir = "tests" },           # Rebuild on test edits (keeps test env fresh).
+]
 
 [build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
+requires = ["uv_build>=0.8.0,<0.9.0"]
+build-backend = "uv_build"
+
+# Settings specific to uv_build.
+[tool.uv.build-backend]
+# Declare the "src/" layout so imports come from installed package, preventing path leaks and matching user installs.
+module-root = "src"
+# The single top-level package name under ./src; the backend validates this to catch layout mistakes early.
+module-name = "gconfigs"
+
+# Helpful for path normalization across OS/CI workers
+[tool.coverage.paths]
+source = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "-s"
+
+[tool.ruff]
+src = ["src", "tests/*"]
+fix = true
+show-fixes = true
+output-format = "full"
+
+[[tool.uv.index]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+publish-url = "https://test.pypi.org/legacy/"
+explicit = true

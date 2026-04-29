@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@v8.1.0
+
+      # Strictly checks formatting (e.g., line lengths, quotes, spacing)
+      - name: Ruff format check
+        run: uv run ruff format --check --diff
+
+      # Checks for code quality issues (e.g., unused imports, undefined names)
+      - name: Ruff lint
+        run: uv run ruff check
+
+  test:
+    name: Test on Python ${{ matrix.python-version }} - Linux
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15" ]
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@v8.1.0
+
+      - name: Run tests
+        run: uv run --python ${{ matrix.python-version }} pytest -v
+
+  test-windows:
+    name: Test on Python ${{ matrix.python-version }} - Windows
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15" ]
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@v8.1.0
+
+      - name: Run tests
+        run: uv run --python ${{ matrix.python-version }} pytest -v

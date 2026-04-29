@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
-from collections import namedtuple
-from functools import lru_cache
 import json
+from collections import namedtuple
 
 
 class NoValue:
@@ -15,12 +13,14 @@ NOTSET = NoValue()
 class GConfigs:
     def __init__(self, backend, strip=True, object_type_name="KeyValue"):
         """
-        :param backend: Backend / parser of configs. A simple class implementing `get` and `keys` methods. `gconfigs.backends` for more information.
-        :param strip: Control the stripping of return value of `self.get` method.
-        :param object_type_name: Simply a nice name for our key value named tuple.
+        Args:
+            backend: Backend / parser of configs. A simple class implementing `get` and `keys` methods.
+            `gconfigs.backends` for more information.
+            strip (bool): Control the stripping of return value of `self.get` method.
+            object_type_name (str): Simply a nice name for our key value named tuple.
         """
         if hasattr(backend, "get") or hasattr(backend, "keys"):
-            self._backend = backend() if callable(backend) else backend
+            self.backend = backend() if callable(backend) else backend
         else:
             raise AttributeError(
                 "'backend' class must have at least the methods 'get' and 'keys'."
@@ -28,24 +28,23 @@ class GConfigs:
 
         self.strip = strip
         self.object_type_name = object_type_name
-
-        if hasattr(self._backend, "load_file") and callable(self._backend.load_file):
-            self.load_file = self._load_file
-
         self._iter_configs = self.iterator()
 
     def get(self, key, default=NOTSET, use_instead=NOTSET, strip=None, **kwargs):
         """Return value for given key.
-        :param var: Key (Name) of config.
-        :param default: If backend doesn't return valid config, return this instead.
-        :param use_instead: If `key` doesn't exist use the alternative key `use_instead`.
-        :param strip: Control the stripping of return value. Override the default `self.strip` with `True` or `False`. Will strip if is a string value.
+        Args:
+            key (str): Key (Name) of config.
+            default (NOTSET|str): If backend doesn't return valid config, return this instead.
+            use_instead (str): If `key` doesn't exist use the alternative key `use_instead`.
+            strip (bool): Control the stripping of return value. Override the default `self.strip` with `True` or `False`.
+            Will strip if is a string value.
 
-        :returns: Parsed value or default. Or raises exceptions you implement in your backend.
+        Returns:
+            Parsed value or default. Or raises exceptions you implement in your backend.
         """
 
         try:
-            value = self._backend.get(key)
+            value = self.backend.get(key)
         # This may seem a generic try/except but I'm actually catching the
         # specific Exception that you will implement in your backend.
         except Exception as e:
@@ -96,28 +95,22 @@ class GConfigs:
     def _cast(self, value):
         try:
             return json.loads(value)
-
-        except json.decoder.JSONDecodeError as e:
+        except json.decoder.JSONDecodeError:
             raise ValueError(
                 f"Could not cast the value {value}. Tried to cast with json module, so it must be a valid json value."
             )
 
     def json(self):
-        """Returns json parsed data of all available data.
-        """
+        """Returns json parsed data of all available data."""
         return json.dumps({item.key: item.value for item in self.iterator()})
 
-    def _load_file(self, filepath):
-        self._backend.load_file(filepath)
-
-    @property
-    @lru_cache()
-    def _cached_namedtuple(self):
-        return namedtuple(self.object_type_name, ["key", "value"])
-
     def iterator(self):
-        for key in self._backend.keys():
-            yield self._cached_namedtuple(key, self.get(key))
+        kv = namedtuple(self.object_type_name, ["key", "value"])
+        for key in self.backend.keys():
+            yield kv(key=key, value=self.get(key))
+
+    def __call__(self, key, **kwargs):
+        return self.get(key, **kwargs)
 
     def __next__(self):
         return next(self._iter_configs)
@@ -125,14 +118,11 @@ class GConfigs:
     def __iter__(self):
         return self
 
-    def __call__(self, key, **kwargs):
-        return self.get(key, **kwargs)
-
     def __contains__(self, key):
-        return key in self._backend.keys()
+        return key in self.backend.keys()
 
     def __len__(self):
-        return len(self._backend.keys())
+        return len(self.backend.keys())
 
     def __repr__(self):  # pragma: no cover
-        return f"<GConfigs backend={self._backend.__class__.__name__}>"
+        return f"<GConfigs backend={self.backend.__class__.__name__}>"

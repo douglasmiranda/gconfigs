@@ -58,7 +58,7 @@ class DummyBackend:
         return self.data
 
     def get(self, key, **kwargs):
-        """ Return value given a key
+        """Return value given a key
         :returns: value or KeyError
         """
         value = self.data.get(key, NOTSET)

@@ -4,13 +4,14 @@ act like a restriction to things I think, at the moment, that we may have to
 talk before changing the way it's implemented.
 """
 
-from gconfigs import GConfigs
-from . import DummyBackend
-import gconfigs
+import json
 
 import pytest
 
-import json
+import gconfigs as gconfigs
+from gconfigs.gconfigs import GConfigs
+
+from . import DummyBackend
 
 
 def test_bad_instatiation():
@@ -29,33 +30,40 @@ def test_bad_instatiation():
         GConfigs()
 
 
-def test_basics():
-    # main endpoints
+def test_defaults():
+    # api main endpoints
     gconfigs.envs
     gconfigs.dotenvs
-    gconfigs.configs
-    gconfigs.secrets
+    gconfigs.local_files
+    gconfigs.local_file
     # basic expected
     configs_ = GConfigs(backend=DummyBackend)
     configs_.strip
     configs_.object_type_name
     configs_.get
     configs_.__call__
+    configs_.backend
+    # casting
+    configs_.as_dict
+    configs_.as_bool
+    configs_.as_list
     # iterator
     configs_.iterator
     configs_.__next__
     configs_.__iter__
-    # fancy xD
+    # utilities
     configs_.json
     configs_.__contains__
     configs_.__len__
     configs_.__repr__
 
-    assert (
-        configs_.object_type_name == "KeyValue"
-    ), "'object_type_name' default value should be 'KeyValue'"
+    assert configs_.object_type_name == "KeyValue", (
+        "'object_type_name' default value should be 'KeyValue'"
+    )
     assert configs_.strip, "'strip' default value should be boolean 'True'"
 
+
+def test_object_type_name():
     configs = GConfigs(backend=DummyBackend, object_type_name="DummyConfig")
     assert configs.object_type_name == "DummyConfig"
     configs.object_type_name = "DummyConfigChanged"
@@ -67,7 +75,7 @@ def test_get_configs_info():
     # if given key is in configs (backend.keys())
     assert "CONFIG-1" in configs
     assert "NON-EXISTENT-CONFIG" not in configs
-    assert len(configs) == len(configs._backend.data)
+    assert len(configs) == len(configs.backend.data)
     assert configs("CONFIG-1") == "config-1"
 
     # Non existent config
@@ -89,7 +97,12 @@ def test_get_configs_use_instead():
     # First key doesn't exist, use key/config "CONFIG-1" instead
     assert configs("NON-EXISTENT-CONFIG", use_instead="CONFIG-1") == "config-1"
     # neither key nor use_instead exist, so use the default
-    assert configs("NON-EXISTENT-CONFIG", use_instead="NON-EXISTENT-CONFIG-2", default="abc") == "abc"
+    assert (
+        configs(
+            "NON-EXISTENT-CONFIG", use_instead="NON-EXISTENT-CONFIG-2", default="abc"
+        )
+        == "abc"
+    )
 
     # if we don't have a default value; and key and use_instead doesn't exist;
     # we get a KeyError about the use_instead key not found.
@@ -176,45 +189,29 @@ def test_get_and_cast_value():
         configs.as_list("CONFIG-LIST-STRING-JSON-STYLE-BROKEN")
 
 
-def test_backend_with_load_file_method():
-    """ Testing backend with ``load_file(filepath: str)`` method
-    I just need a backend with the ``load_file(filepath: str)``
-    and test if ```load_file(filepath: str)`` will also be available in a
-    instance of ``GConfigs()``.
-
-    The actual test of how ``load_file`` works it's
-    """
-
-    class DummyBackendLoadFile(DummyBackend):
-        def load_file(self, filepath):
+def test_access_backend_class_from_gconfigs():
+    class DummyBackendExample(DummyBackend):
+        def example_method(self, example):
             pass
 
-    configs = GConfigs(backend=DummyBackendLoadFile)
-    assert configs.load_file
-    configs.load_file("foo")
-
-    # Instances of ``Gconfigs``, using backends with
-    # no ``load_file(filepath: str)`` should not have a ``load_file`` itself.
-    with pytest.raises(
-        AttributeError, match=r".*'GConfigs' object has no attribute 'load_file'.*"
-    ):
-        GConfigs(backend=DummyBackend).load_file
+    configs = GConfigs(backend=DummyBackendExample)
+    assert configs.backend.example_method
+    configs.backend.example_method("foo")
 
 
 def test_iterator():
     configs = GConfigs(backend=DummyBackend)
-    # iterate with forloop
     for config in configs:
         # Make sure the object is a namedtuple
-        assert (
-            issubclass(config.__class__, tuple) and config._fields
-        ), "Looks like the iterator is not returning a namedtuple anymore."
+        assert issubclass(config.__class__, tuple) and config._fields, (
+            "Looks like the iterator is not returning a namedtuple anymore."
+        )
         assert config
         assert config.key
         # guarantee the namedtuple is being properly created
-        assert (
-            configs(config.key) == config.value
-        ), "Looks like the namedtuple is not being properly created."
+        assert configs(config.key) == config.value, (
+            "Looks like the namedtuple is not being properly created."
+        )
 
     # after an iterate in forloops it should have nothing left for next()
     with pytest.raises(StopIteration):
@@ -232,8 +229,8 @@ def test_json():
     assert json_
     # let's turn the json_ into a dict so we can see if it preserved all the configs
     configs_data = json.loads(json_)
-    assert all(key in configs._backend.data for key in configs_data)
+    assert all(key in configs.backend.data for key in configs_data)
 
-    assert next(
-        configs
-    ), "If `configs` is not iterable after `configs.json()` it's because it's not using the iterator properly."
+    assert next(configs), (
+        "If `configs` is not iterable after `configs.json()` it's because it's not using the iterator properly."
+    )

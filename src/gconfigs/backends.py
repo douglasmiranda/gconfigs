@@ -1,13 +1,12 @@
 """
 Backends for gConfigs
-~~~~~~~~~~~~~~~~~~~~~
 
 Backends are just simple classes with at least two methods implemented:
 `get` and `keys`.
 
 Example:
-
-    class RedisBackend:
+    ```python
+    class XYZBackend:
         def keys(self):
             # return a iterable of all keys available
             return available_keys
@@ -16,7 +15,7 @@ Example:
             # this method receive a key (identifier of a config)
             # and return its respective value
             return value
-
+    ```
 Notes:
     - If it's not possible to provide a `.keys` method, just declare with:
     raise NotImplementedError. Of course it will limit the goodies of gConfigs.
@@ -25,8 +24,9 @@ Notes:
     See `GConfigs.get` and you'll see that it has a `default` parameter,
     and of course if you provide a default value it will not throw a exception.
 """
-from pathlib import Path
+
 import os
+from pathlib import Path
 
 
 class LocalEnv:
@@ -44,48 +44,51 @@ class LocalEnv:
         return value
 
 
-class LocalMountFile:
-    def __init__(self, root_dir="/", pattern="*"):
+class LocalFiles:
+    def __init__(self, path="/", pattern="*"):
         self.pattern = pattern
-        self.root_dir = root_dir
+        self.path = path
 
     @property
-    def root_dir(self):
-        if not self._root_dir.exists():
-            raise RootDirectoryNotFound(
-                f"The root directory {self._root_dir} doesn't exist."
-            )
+    def path(self):
+        return self._path
 
-        return self._root_dir
+    @path.setter
+    def path(self, path):
+        path = Path(path)
+        if not path.exists():
+            raise FileNotFoundError(f"The path {path} doesn't exist.")
+        if not path.is_dir():
+            raise NotADirectoryError(f"The path {path} is not a directory.")
 
-    @root_dir.setter
-    def root_dir(self, root_dir):
-        self._root_dir = Path(root_dir)
+        self._path = path
 
     def keys(self):
-        for item in self.root_dir.glob(self.pattern):
+        for item in self.path.glob(self.pattern):
             if item.is_file():
                 yield item.name
 
     def get(self, key, **kwargs):
-        file = self.root_dir / key
+        file = self.path / key
         if file.exists():
             return file.read_text()
 
         raise FileNotFoundError(
-            f"Check if your files are mounted on {self.root_dir}. "
+            f"Check if your files are mounted on {self.path}. "
             "And remember to check if your system is case sensitive."
         )
 
 
 class DotEnv:
+    def __init__(self, filepath=".env"):
+        self._dotenv_file = None
+        self._data = {}
+        self.load_file(filepath)
+
     def keys(self):
         return self._data.keys()
 
     def get(self, key, **kwargs):
-        if not hasattr(self, "_dotenv_file"):
-            raise Exception("It seems like you didn't loaded the your dotenv file yet.")
-
         value = self._data.get(key)
         if value is None:
             raise KeyError(
@@ -114,5 +117,20 @@ class DotEnv:
                 self._data[key] = value.rstrip("\r\n")
 
 
-class RootDirectoryNotFound(FileNotFoundError):
-    pass
+class File:
+    def keys(self):
+        return tuple()
+
+    def get(self, key, **kwargs):
+        filepath = Path(key)
+        if not filepath.exists():
+            raise FileNotFoundError(
+                f"The file {filepath} doesn't exist. Check if the file is mounted correctly."
+            )
+
+        if not os.access(filepath, os.R_OK):
+            raise PermissionError(
+                f"The file {filepath} is not readable. Check the file permissions."
+            )
+
+        return filepath.read_text()

@@ -21,7 +21,8 @@ wheels/
 .installed.cfg
 *.egg
 
-# Unit test / coverage reports
+# test / coverage reports
+.pytest_cache/
 htmlcov/
 .coverage
 .coverage.*
@@ -30,8 +31,8 @@ nosetests.xml
 coverage.xml
 *.cover
 .hypothesis/
+.ruff_cache/
 
-# pyenv
 .python-version
 
 # virtualenv
