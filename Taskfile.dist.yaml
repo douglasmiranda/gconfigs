@@ -26,7 +26,7 @@ tasks:
   test-all:
     desc: Test all python versions in parallel.
     vars:
-      PYTHON_VERSIONS: [ "3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15" ]
+      PYTHON_VERSIONS: [ "3.10", "3.11", "3.12", "3.13", "3.14", "3.15" ]
     # we're using deps here just so we can parallelize the tests
     deps:
       - for: { var: PYTHON_VERSIONS }

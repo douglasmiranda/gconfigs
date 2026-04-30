@@ -14,7 +14,7 @@ Why another config library?
 
 ## Installation
 
-Python 3.8+
+Python 3.10+
 
 ```bash
 pip install gconfigs
