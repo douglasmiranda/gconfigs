@@ -65,13 +65,13 @@ tasks:
     cmds:
       - |
         cat <<EOF >> "CHANGELOG/{{.VERSION}}.md"
-          # {{.VERSION}} - $(date +%Y-%m-%d)
+        # {{.VERSION}} - $(date +%Y-%m-%d)
 
-          ## Commit Summary
+        ## Commit Summary
 
-          {{.COMMITS_SINCE_LATEST_TAG}}
+        {{.COMMITS_SINCE_LATEST_TAG}}
 
-          {{.AUTO_GENERATED_NOTES}}
+        {{.AUTO_GENERATED_NOTES}}
         EOF
     preconditions:
       - sh: "test -d CHANGELOG"
