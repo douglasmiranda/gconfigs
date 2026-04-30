@@ -92,7 +92,7 @@ tasks:
       - git add pyproject.toml CHANGELOG/{{.VERSION}}.md
       - git commit -m "Release version {{.VERSION}}"
       - git tag -a {{.VERSION}} -m "Release version {{.VERSION}}"
-      - git push origin main {{.VERSION}}
+      - git push origin master {{.VERSION}}
       - gh release create {{.VERSION}} --title "gConfigs {{.VERSION}}" --verify-tag --notes-file
         CHANGELOG/{{.VERSION}}.md
     preconditions:
