@@ -1,0 +1,112 @@
+version: "3"
+
+tasks:
+  default:
+    desc: Default task. Shows help.
+    cmds:
+      - task --list
+
+  test:
+    desc: Run tests.
+    cmds:
+      - uv run pytest
+
+  test-coverage:
+    desc: Run tests with coverage.
+    cmds:
+      - uv run pytest --cov
+
+  test-python:
+    desc: Run tests for one Python version.
+    requires:
+      vars: [ PYTHON_VERSION ]
+    cmds:
+      - uv run --isolated --python {{.PYTHON_VERSION}} pytest
+
+  test-all:
+    desc: Test all python versions in parallel.
+    vars:
+      PYTHON_VERSIONS: [ "3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15" ]
+    # we're using deps here just so we can parallelize the tests
+    deps:
+      - for: { var: PYTHON_VERSIONS }
+        task: test-python
+        vars:
+          PYTHON_VERSION: "{{.ITEM}}"
+
+  clean-all:
+    desc: Clean all cache/build/dev/test artifacts.
+    prompt: Are you sure you want to clean all cache/build/dev/test artifacts? This cannot be undone.
+    cmds:
+      - uv clean
+      - rm -rf dist *.egg-info .pytest_cache .ruff_cache .venv .coverage
+      - find . -type d -name "__pycache__" -exec rm -rf {} +
+      - find . -type f -name "*.pyc" -delete
+
+  lint:
+    desc: Run linters.
+    cmds:
+      # Strictly checks formatting (e.g., line lengths, quotes, spacing)
+      - uv run ruff format --check --diff
+      # Checks for code quality issues (e.g., unused imports, undefined names)
+      - uv run ruff check
+
+  create-changelog:
+    desc: Create a new changelog entry.
+    requires:
+      vars: [ VERSION ]
+    vars:
+      LATEST_TAG:
+        sh: git describe --tags $(git rev-list --tags --max-count=1)
+      COMMITS_SINCE_LATEST_TAG:
+        sh: git log --pretty=format:"- %s (%H)" {{.LATEST_TAG}}..HEAD --no-merges
+      AUTO_GENERATED_NOTES:
+        sh: gh api repos/douglasmiranda/gconfigs/releases/generate-notes -f tag_name="{{.VERSION}}" --jq '.body'
+    cmds:
+      - |
+        cat <<EOF >> "CHANGELOG/{{.VERSION}}.md"
+          # {{.VERSION}} - $(date +%Y-%m-%d)
+
+          ## Commit Summary
+
+          {{.COMMITS_SINCE_LATEST_TAG}}
+
+          {{.AUTO_GENERATED_NOTES}}
+        EOF
+    preconditions:
+      - sh: "test -d CHANGELOG"
+        msg: "CHANGELOG directory does not exist. Please create it before running this task."
+      - sh: "test ! -f CHANGELOG/{{.VERSION}}.md"
+        msg: "Changelog entry for version {{.VERSION}} already exists. Please choose a different version or delete the existing
+          entry."
+
+  release:
+    desc: Create a new release.
+    prompt: Are you sure you want to create a new release? This will update the version, create a git tag, and push to the
+      repository.
+    requires:
+      vars: [ VERSION ]
+    cmds:
+      - echo "Updating version to {{.VERSION}}..."
+      - uv version {{.VERSION}} --frozen
+      - git add pyproject.toml CHANGELOG/{{.VERSION}}.md
+      - git commit -m "Release version {{.VERSION}}"
+      - git tag -a {{.VERSION}} -m "Release version {{.VERSION}}"
+      - git push origin main {{.VERSION}}
+      - gh release create {{.VERSION}} --title "gConfigs {{.VERSION}}" --verify-tag --notes-file
+        CHANGELOG/{{.VERSION}}.md
+    preconditions:
+      - sh: "test -z $(git tag -l {{.VERSION}})"
+        msg: "Version {{.VERSION}} is already tagged. Please choose a different version."
+
+  publish:
+    desc: Publish package to PyPI.
+    prompt: Are you sure you want to publish the package to PyPI? This cannot be undone.
+    requires:
+      vars:
+        - VERSION
+        - PYPI_TOKEN
+    cmds:
+      - uv version {{.VERSION}} --frozen
+      - uv build --no-sources
+      - uv publish 'dist/gconfigs-{{.VERSION}}*' --token={{.PYPI_TOKEN}}
