@@ -88,8 +88,8 @@ tasks:
       vars: [ VERSION ]
     cmds:
       - echo "Updating version to {{.VERSION}}..."
-      - uv version {{.VERSION}} --frozen
-      - git add pyproject.toml CHANGELOG/{{.VERSION}}.md
+      - uv version {{.VERSION}}
+      - git add pyproject.toml CHANGELOG/{{.VERSION}}.md uv.lock
       - git commit -m "Release version {{.VERSION}}"
       - git tag -a {{.VERSION}} -m "Release version {{.VERSION}}"
       - git push origin master {{.VERSION}}
