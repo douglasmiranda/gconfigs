@@ -1,5 +1,8 @@
 version: "3"
 
+vars:
+  REPO_URL: "https://github.com/douglasmiranda/gconfigs"
+
 tasks:
   default:
     desc: Default task. Shows help.
@@ -59,7 +62,7 @@ tasks:
       LATEST_TAG:
         sh: git describe --tags $(git rev-list --tags --max-count=1)
       COMMITS_SINCE_LATEST_TAG:
-        sh: git log --pretty=format:"- %s (%H)" {{.LATEST_TAG}}..HEAD --no-merges
+        sh: git log --pretty=format:"- %s [%h]({{.REPO_URL}}/commit/%H)" {{.LATEST_TAG}}..HEAD --no-merges
       AUTO_GENERATED_NOTES:
         sh: gh api repos/douglasmiranda/gconfigs/releases/generate-notes -f tag_name="{{.VERSION}}" --jq '.body'
     cmds:
