@@ -19,13 +19,12 @@ class GConfigs:
             strip (bool): Control the stripping of return value of `self.get` method.
             object_type_name (str): Simply a nice name for our key value named tuple.
         """
-        if hasattr(backend, "get") or hasattr(backend, "keys"):
-            self.backend = backend() if callable(backend) else backend
-        else:
+        if not (hasattr(backend, "get") and hasattr(backend, "keys")):
             raise AttributeError(
                 "'backend' class must have at least the methods 'get' and 'keys'."
             )
 
+        self.backend = backend() if callable(backend) else backend
         self.strip = strip
         self.object_type_name = object_type_name
         self._iter_configs = self.iterator()
