@@ -54,13 +54,17 @@ def test_dotenv():
 
     assert "COMMENTED-CONFIG" not in backend.keys()
     assert backend.get("CONFIG-EMPTY-VALUE") == "", "Empty values must be empty string."
+    assert backend.get("TEST-EMPTY-WITHOUT-NEWLINE") == "", (
+        "Final line empty values must be preserved even without trailing newline."
+    )
 
     # just seeing if we can iterate over all configs
+    empty_value_keys = {"CONFIG-EMPTY-VALUE", "TEST-EMPTY-WITHOUT-NEWLINE"}
     for key in backend.keys():
         assert not key.startswith(("#", ";", "[")), "Invalid lines must be removed."
         assert "=" not in key
-        # the `CONFIG-EMPTY-VALUE` will be an empty value, so, no good to assert
-        if key == "CONFIG-EMPTY-VALUE":
+        # keys with empty values should not be asserted as truthy
+        if key in empty_value_keys:
             continue
 
         assert backend.get(key)

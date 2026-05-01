@@ -102,7 +102,9 @@ class DotEnv:
         self._dotenv_file = filepath
         self._data = {}
         with open(self._dotenv_file) as file:
-            for line in file.readlines():
+            for _line in file.readlines():
+                line = _line.lstrip()
+
                 # ignore comments, section title or invalid lines
                 if line.startswith(("#", ";", "[")) or "=" not in line:
                     continue
@@ -111,7 +113,7 @@ class DotEnv:
                 key, value = line.split("=", 1)
                 key = key.strip()
 
-                if not (key and value):
+                if not key:
                     continue
 
                 self._data[key] = value.rstrip("\r\n")
