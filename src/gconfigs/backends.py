@@ -17,8 +17,8 @@ Example:
             return value
     ```
 Notes:
-    - If it's not possible to provide a `.keys` method, just declare with:
-    raise NotImplementedError. Of course it will limit the goodies of gConfigs.
+    - If it's not possible to provide a `.keys` method, just declare with
+    an empty tuple for example, but the `.get` method is mandatory.
     - For errors on `.get` method just throw exceptions.
     (Config doesn't exists, you don't have permission, stuff like that)
     See `GConfigs.get` and you'll see that it has a `default` parameter,
