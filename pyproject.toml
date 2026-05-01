@@ -1,6 +1,6 @@
 [project]
 name = "gconfigs"
-version = "1.1.0"
+version = "1.1.1"
 description = "gConfigs - Configuration helper for Python applications."
 authors = [
     { name = "Douglas Miranda", email = "douglasmirandasilva@gmail.com" },
