@@ -113,13 +113,18 @@ api_key = secrets("API_KEY")
 
 How it works:
 
-- File name is the config key
+- Relative file path is the config key
 - File content is the config value
 - Optional pattern argument filters which files are considered
+- Keys are file names directly inside the configured base path
+- Reads are restricted to the configured base path (path traversal like `../secret` is blocked)
+- Recursive access is intentionally not supported (nested paths like `nested/key.txt` are rejected)
 
 ```python
 only_app = gconfigs.local_files("/run/configs", pattern="APP_*")
 ```
+
+\* Uses fnmatch for pattern matching. [fnmatch docs](https://docs.python.org/3/library/fnmatch.html)
 
 ### Single Local File
 

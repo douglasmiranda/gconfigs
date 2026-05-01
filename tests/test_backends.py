@@ -34,6 +34,51 @@ def test_local_mount_file_generic():
         backend.get("NON-EXISTENT-CONFIG")
 
 
+def test_local_files_path_traversal_is_blocked(tmp_path):
+    """LocalFiles must reject keys that resolve outside its base directory."""
+    allowed_dir = tmp_path / "allowed"
+    allowed_dir.mkdir()
+    (tmp_path / "outside-secret").write_text("outside")
+
+    backend = LocalFiles(path=allowed_dir)
+
+    with pytest.raises(FileNotFoundError):
+        backend.get("../outside-secret")
+
+
+def test_local_files_pattern_is_non_recursive(tmp_path):
+    """Patterns must match only files directly inside the configured directory."""
+    nested_dir = tmp_path / "configs" / "nested"
+    nested_dir.mkdir(parents=True)
+    (tmp_path / "configs" / "a.txt").write_text("a")
+    (nested_dir / "b.txt").write_text("b")
+
+    backend = LocalFiles(path=tmp_path / "configs", pattern="*.txt")
+
+    keys = tuple(backend.keys())
+    assert "a.txt" in keys
+    assert "b.txt" not in keys
+
+    with pytest.raises(FileNotFoundError):
+        backend.get("nested/b.txt")
+
+
+def test_local_files_get_unreadable_file(monkeypatch, tmp_path):
+    """LocalFiles should raise PermissionError for unreadable target files."""
+    filepath = tmp_path / "configs" / "password"
+    filepath.parent.mkdir(parents=True)
+    filepath.write_text("top-secret")
+
+    def deny_read_access(_path, mode):
+        return False if mode == os.R_OK else os.access(_path, mode)
+
+    monkeypatch.setattr(os, "access", deny_read_access)
+
+    backend = LocalFiles(path=filepath.parent)
+    with pytest.raises(PermissionError):
+        backend.get(filepath.name)
+
+
 def test_dotenv():
     backend = DotEnv("./tests/files/config-files/.env")
 

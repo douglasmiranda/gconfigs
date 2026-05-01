@@ -26,6 +26,7 @@ Notes:
 """
 
 import os
+from fnmatch import fnmatch
 from pathlib import Path
 
 
@@ -64,19 +65,39 @@ class LocalFiles:
         self._path = path
 
     def keys(self):
-        for item in self.path.glob(self.pattern):
-            if item.is_file():
+        for item in self.path.iterdir():
+            if item.is_file() and fnmatch(item.name, self.pattern):
                 yield item.name
 
     def get(self, key, **kwargs):
-        file = self.path / key
-        if file.exists():
-            return file.read_text()
+        if Path(key).name != key:
+            raise FileNotFoundError(
+                f"The key '{key}' is not valid for LocalFiles. "
+                "Only files directly inside the configured path are supported."
+            )
 
-        raise FileNotFoundError(
-            f"Check if your files are mounted on {self.path}. "
-            "And remember to check if your system is case sensitive."
-        )
+        base_path = self.path.resolve()
+        file = (base_path / key).resolve()
+
+        try:
+            file.relative_to(base_path)
+        except ValueError as e:
+            raise PermissionError(
+                f"The key '{key}' resolves outside the allowed path {self.path}."
+            ) from e
+
+        if not file.exists() or not file.is_file():
+            raise FileNotFoundError(
+                f"Check if your files are mounted on {self.path}. "
+                "And remember to check if your system is case sensitive."
+            )
+
+        if not os.access(file, os.R_OK):
+            raise PermissionError(
+                f"The file {file} is not readable. Check the file permissions."
+            )
+
+        return file.read_text()
 
 
 class DotEnv:
