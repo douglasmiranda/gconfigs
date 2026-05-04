@@ -29,26 +29,28 @@ class DummyBackend:
             pop = _immutable
             popitem = _immutable
 
-        self.data = ImmutableDict({
-            "CONFIG-1": "config-1",
-            " white space key ": " white space value ",
-            "empty-value": "",
-            "space-only-value": "  ",
-            "CONFIG-NONE": None,
-            "CONFIG-TRUE": True,
-            "CONFIG-FALSE": False,
-            "CONFIG-INT": 1,
-            "CONFIG-FLOAT": 1.1,
-            "CONFIG-LIST": [1, 1.1, "a"],
-            "CONFIG-TUPLE": (1, 1.1, "a"),
-            "CONFIG-SET": {1, 1.1, "a"},
-            "CONFIG-DICT": {"a": 1, "b": "b"},
-            "CONFIG-TRUE-STRING": "True",
-            "CONFIG-FALSE-STRING": "False",
-            "CONFIG-LIST-STRING-JSON-STYLE": '[1, 1.1, "a"]',
-            "CONFIG-LIST-STRING-JSON-STYLE-BROKEN": '[1, 1.1, "a]',
-            "CONFIG-DICT-JSON-STYLE": '{"a": 1, "b": "b"}',
-        })
+        self.data = ImmutableDict(
+            {
+                "CONFIG-1": "config-1",
+                " white space key ": " white space value ",
+                "empty-value": "",
+                "space-only-value": "  ",
+                "CONFIG-NONE": None,
+                "CONFIG-TRUE": True,
+                "CONFIG-FALSE": False,
+                "CONFIG-INT": 1,
+                "CONFIG-FLOAT": 1.1,
+                "CONFIG-LIST": [1, 1.1, "a"],
+                "CONFIG-TUPLE": (1, 1.1, "a"),
+                "CONFIG-SET": {1, 1.1, "a"},
+                "CONFIG-DICT": {"a": 1, "b": "b"},
+                "CONFIG-TRUE-STRING": "True",
+                "CONFIG-FALSE-STRING": "False",
+                "CONFIG-LIST-STRING-JSON-STYLE": '[1, 1.1, "a"]',
+                "CONFIG-LIST-STRING-JSON-STYLE-BROKEN": '[1, 1.1, "a]',
+                "CONFIG-DICT-JSON-STYLE": '{"a": 1, "b": "b"}',
+            }
+        )
 
     def keys(self):
         """
