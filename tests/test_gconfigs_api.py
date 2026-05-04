@@ -303,6 +303,12 @@ def test_iterator():
     for config in iter_configs:
         assert config
 
+    # iterating multiple times should always start from the first item again
+    first_pass_keys = [config.key for config in configs]
+    second_pass_keys = [config.key for config in configs]
+    assert first_pass_keys == second_pass_keys
+    assert first_pass_keys
+
 
 def test_json():
     configs = GConfigs(backend=DummyBackend)

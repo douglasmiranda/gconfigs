@@ -111,6 +111,7 @@ class GConfigs:
         return next(self._iter_configs)
 
     def __iter__(self):
+        self._iter_configs = self.iterator()
         return self
 
     def __contains__(self, key):
