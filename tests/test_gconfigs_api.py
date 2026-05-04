@@ -391,6 +391,12 @@ def test_cast_list_list_separator():
     assert out_fmt.format_value([1, 1.1, "a"], cast=list, list_sep=";") == [1, 1.1, "a"]
 
 
+def test_cast_list_invalid_string_without_separator_or_json_style():
+    out_fmt = ValueOutput()
+    with pytest.raises(ValueError, match=r".*Could not cast the value.*"):
+        out_fmt.format_value("abc", cast=list)
+
+
 def test_cast_list_value_json_style():
     """These tests won't be extensive, because we would just be testing the `json.loads` behavior."""
     out_fmt = ValueOutput()
@@ -426,6 +432,12 @@ def test_cast_tuple_list_separator():
     )
 
 
+def test_cast_tuple_invalid_string_without_separator_or_json_style():
+    out_fmt = ValueOutput()
+    with pytest.raises(ValueError, match=r".*Could not cast the value.*"):
+        out_fmt.format_value("abc", cast=tuple)
+
+
 def test_cast_tuple_value_json_style():
     """These tests won't be extensive, because we would just be testing the `json.loads` behavior.
 
@@ -457,6 +469,12 @@ def test_cast_set_list_separator():
     assert out_fmt.format_value("1;1.1;a", cast=set, list_sep=";") == {"1", "1.1", "a"}
     # if the value is not a string, it should just return the value as is, even if we pass a list_sep
     assert out_fmt.format_value({1, 1.1, "a"}, cast=set, list_sep=";") == {1, 1.1, "a"}
+
+
+def test_cast_set_invalid_string_without_separator_or_json_style():
+    out_fmt = ValueOutput()
+    with pytest.raises(ValueError, match=r".*Could not cast the value.*"):
+        out_fmt.format_value("abc", cast=set)
 
 
 def test_cast_set_value_json_style():

@@ -225,6 +225,8 @@ class ValueOutput:
         if list_sep in value:
             return [item.strip() for item in value.split(list_sep)]
 
+        raise ValueError(f"Could not cast the value '{value}' to list.")
+
     def _cast_tuple(self, value, list_sep):
         if isinstance(value, (list, set)):
             return tuple(value)
@@ -238,6 +240,8 @@ class ValueOutput:
         if list_sep in value:
             return tuple(item.strip() for item in value.split(list_sep))
 
+        raise ValueError(f"Could not cast the value '{value}' to tuple.")
+
     def _cast_set(self, value, list_sep):
         if isinstance(value, (list, tuple)):
             return set(value)
@@ -250,6 +254,8 @@ class ValueOutput:
 
         if list_sep in value:
             return set(item.strip() for item in value.split(list_sep))
+
+        raise ValueError(f"Could not cast the value '{value}' to set.")
 
     def _cast_dict(self, value):
         if isinstance(value, str) and value.startswith("{") and value.endswith("}"):
