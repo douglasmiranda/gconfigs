@@ -9,7 +9,7 @@ import json
 import pytest
 
 import gconfigs as gconfigs
-from gconfigs.gconfigs import GConfigs
+from gconfigs.gconfigs import GConfigs, ValueOutput
 
 from . import DummyBackend
 
@@ -37,30 +37,25 @@ def test_defaults():
     gconfigs.local_files
     gconfigs.local_file
     # basic expected
-    configs_ = GConfigs(backend=DummyBackend)
-    configs_.strip
-    configs_.object_type_name
-    configs_.get
-    configs_.__call__
-    configs_.backend
-    # casting
-    configs_.as_dict
-    configs_.as_bool
-    configs_.as_list
+    configs = GConfigs(backend=DummyBackend)
+    configs.object_type_name
+    configs.get
+    configs.__call__
+    configs.backend
+    configs.output_fmt
     # iterator
-    configs_.iterator
-    configs_.__next__
-    configs_.__iter__
+    configs.iterator
+    configs.__next__
+    configs.__iter__
     # utilities
-    configs_.json
-    configs_.__contains__
-    configs_.__len__
-    configs_.__repr__
+    configs.json
+    configs.__contains__
+    configs.__len__
+    configs.__repr__
 
-    assert configs_.object_type_name == "KeyValue", (
+    assert configs.object_type_name == "KeyValue", (
         "'object_type_name' default value should be 'KeyValue'"
     )
-    assert configs_.strip, "'strip' default value should be boolean 'True'"
 
 
 def test_object_type_name():
@@ -85,10 +80,95 @@ def test_get_configs_info():
     # Non existent config - return default instead
     assert configs("NON-EXISTENT-CONFIG", default="default") == "default"
     # default argument can be anything
-    # achieved by using the `gconfigs.gconfigs.NOTSET` trick
+    # achieved by using the `gconfigs.gconfigs.NOTSET`
     assert configs("NON-EXISTENT-CONFIG", default=None) is None
     assert configs("NON-EXISTENT-CONFIG", default=True) is True
     assert configs("NON-EXISTENT-CONFIG", default=False) is False
+
+
+def test_get_is_keyword_only_for_default_and_options():
+    """Check if `get` method is properly enforcing the keyword only arguments
+    after the `key` argument."""
+    configs = GConfigs(backend=DummyBackend)
+
+    with pytest.raises(TypeError):
+        configs.get("NON-EXISTENT-CONFIG", "default")
+
+
+def test_get_formats_default_value_when_key_is_missing():
+    configs = GConfigs(backend=DummyBackend)
+
+    value = configs.get("NON-EXISTENT-CONFIG", default=" 1 ", cast=int, strip=True)
+
+    assert value == 1
+
+
+def test_get_propagates_format_options_to_use_instead_fallback():
+    class FallbackBackend:
+        def keys(self):
+            return ["ALT"]
+
+        def get(self, key, **kwargs):
+            if key == "ALT":
+                return " 1 "
+            raise KeyError(f"'{key}' not set")
+
+    configs = GConfigs(backend=FallbackBackend)
+
+    value = configs.get("PRIMARY", use_instead="ALT", cast=int, strip=True)
+
+    assert value == 1
+
+
+def test_get_propagates_backend_kwargs_to_use_instead_fallback():
+    class BackendWithFallbackKwargs:
+        def __init__(self):
+            self.calls = []
+
+        def keys(self):
+            return ["SECONDARY"]
+
+        def get(self, key, **kwargs):
+            self.calls.append((key, kwargs))
+            if key == "SECONDARY":
+                return "ok"
+            raise KeyError(f"'{key}' not set")
+
+    backend = BackendWithFallbackKwargs()
+    configs = GConfigs(backend=backend)
+
+    value = configs.get("PRIMARY", use_instead="SECONDARY", profile="staging")
+
+    assert value == "ok"
+    assert backend.calls == [
+        ("PRIMARY", {"profile": "staging"}),
+        ("SECONDARY", {"profile": "staging"}),
+    ]
+
+
+def test_get_does_not_use_default_or_use_instead_on_success_path():
+    class TrackingBackend:
+        def __init__(self):
+            self.calls = []
+
+        def keys(self):
+            return ["CONFIG-1", "FALLBACK"]
+
+        def get(self, key, **kwargs):
+            self.calls.append(key)
+            if key == "CONFIG-1":
+                return "config-1"
+            if key == "FALLBACK":
+                return "fallback"
+            raise KeyError(f"'{key}' not set")
+
+    backend = TrackingBackend()
+    configs = GConfigs(backend=backend)
+
+    value = configs.get("CONFIG-1", default="default", use_instead="FALLBACK")
+
+    assert value == "config-1"
+    assert backend.calls == ["CONFIG-1"]
 
 
 def test_get_configs_use_instead():
@@ -110,83 +190,85 @@ def test_get_configs_use_instead():
         assert configs("NON-EXISTENT-CONFIG", use_instead="NON-EXISTENT-CONFIG-2")
 
 
-def test_get_configs_strip_value_or_not():
-    configs = GConfigs(backend=DummyBackend)
-    assert configs.strip
-    # strip default: True
-    assert (
-        configs(" white space key ") == "white space value"
-        and configs("space-only-value") == ""
-    ), "Returning value should be stripped."
-    # override default
-    assert (
-        configs(" white space key ", strip=False) == " white space value "
-        and configs("space-only-value", strip=False) == "  "
-    ), "Returning value should ALLOW blank spaces."
+def test_get_use_instead_attempts_only_once_then_raises_fallback_error():
+    class FailingBackend:
+        def __init__(self):
+            self.calls = []
 
-    # no strip
-    configs2 = GConfigs(backend=DummyBackend, strip=False)
-    assert configs2.strip is False
-    # strip default: False
-    assert (
-        configs2(" white space key ") == " white space value "
-        and configs2("space-only-value") == "  "
-    ), "Returning value should ALLOW blank spaces."
-    # override default
-    assert (
-        configs2(" white space key ", strip=True) == "white space value"
-        and configs2("space-only-value", strip=True) == ""
-    ), "Returning value should be stripped."
-    configs2.strip = True
-    assert configs2.strip
+        def keys(self):
+            return []
+
+        def get(self, key, **kwargs):
+            self.calls.append(key)
+            raise KeyError(f"'{key}' not set")
+
+    backend = FailingBackend()
+    configs = GConfigs(backend=backend)
+
+    with pytest.raises(KeyError, match=r".*'SECONDARY' not set.*"):
+        configs.get("PRIMARY", use_instead="SECONDARY")
+
+    assert backend.calls == ["PRIMARY", "SECONDARY"]
 
 
-def test_get_typed_configs():
-    """Check if gConfigs deal with typed configs
-    Most backends will probably return strings as value of a config, but
-    if someone cast the value it's nice to know if gConfigs is ok with this.
-    """
-    configs = GConfigs(backend=DummyBackend)
-    assert configs("CONFIG-1") == "config-1"
-    assert configs("CONFIG-NONE") is None
-    assert configs("CONFIG-TRUE") is True
-    assert configs("CONFIG-FALSE") is False
-    assert configs("CONFIG-INT") == 1
-    assert configs("CONFIG-FLOAT") == 1.1
-    assert configs("CONFIG-LIST") == [1, 1.1, "a"]
-    assert configs("CONFIG-TUPLE") == (1, 1.1, "a")
-    assert configs("CONFIG-DICT") == {"a": 1, "b": "b"}
+def test_get_forwards_backend_kwargs():
+    class BackendWithKwargs:
+        def __init__(self):
+            self.seen = []
+
+        def keys(self):
+            return ["CONFIG-1"]
+
+        def get(self, key, **kwargs):
+            self.seen.append((key, kwargs))
+            return "config-1"
+
+    backend = BackendWithKwargs()
+    configs = GConfigs(backend=backend)
+
+    value = configs.get("CONFIG-1", profile="dev", region="sa-east-1")
+
+    assert value == "config-1"
+    assert backend.seen == [("CONFIG-1", {"profile": "dev", "region": "sa-east-1"})]
 
 
-def test_get_and_cast_value():
-    configs = GConfigs(backend=DummyBackend)
-    # BOOLEAN
-    assert configs.as_bool("CONFIG-TRUE")  # when backend return a bool already
-    assert configs.as_bool("CONFIG-TRUE-STRING")
-    assert isinstance(configs.as_bool("CONFIG-TRUE-STRING"), bool)
-    assert not configs.as_bool("CONFIG-FALSE-STRING")
-    assert isinstance(configs.as_bool("CONFIG-FALSE-STRING"), bool)
-    assert configs.as_bool("NON-EXISTENT-CONFIG", default=True)
-    assert isinstance(configs.as_bool("NON-EXISTENT-CONFIG", default=True), bool)
-    with pytest.raises(ValueError, match=r".*Could not cast the value.*"):
-        configs.as_bool("CONFIG-NONE")
+def test_get_calls_output_formatter_with_expected_arguments():
+    """Check if `get` method is properly calling the `output_fmt.format_value`
+    method with the expected arguments."""
 
-    # LIST
-    assert configs.as_list("CONFIG-LIST") == [1, 1.1, "a"]
-    assert configs.as_list("CONFIG-TUPLE") == [1, 1.1, "a"]
-    assert configs.as_list("CONFIG-LIST-STRING-JSON-STYLE") == [1, 1.1, "a"]
-    with pytest.raises(ValueError, match=r".*Could not cast the value.*"):
-        configs.as_list("CONFIG-NONE")
+    class SpyOutputFmt:
+        def __init__(self):
+            self.calls = []
 
-    # DICT
-    assert configs.as_dict("CONFIG-DICT") == {"a": 1, "b": "b"}
-    assert configs.as_dict("CONFIG-DICT-JSON-STYLE") == {"a": 1, "b": "b"}
-    with pytest.raises(ValueError, match=r".*Could not cast the value.*"):
-        configs.as_dict("CONFIG-NONE")
+        def format_value(self, value, strip, cast, list_sep, bool_values):
+            self.calls.append((value, strip, cast, list_sep, bool_values))
+            return "formatted-value"
 
-    # trigger exception on GConfigs._cast()
-    with pytest.raises(ValueError, match=r".*must be a valid json value.*"):
-        configs.as_list("CONFIG-LIST-STRING-JSON-STYLE-BROKEN")
+    spy = SpyOutputFmt()
+    configs = GConfigs(backend=DummyBackend, output_fmt=spy)
+    bool_values = (("enabled", "disabled"),)
+
+    value = configs.get(
+        "CONFIG-1",
+        strip=False,
+        cast=str,
+        list_sep=";",
+        bool_values=bool_values,
+    )
+
+    assert value == "formatted-value"
+    assert spy.calls == [("config-1", False, str, ";", bool_values)]
+
+
+def test_get_propagates_formatter_errors():
+    class ExplodingOutputFmt:
+        def format_value(self, value, strip, cast, list_sep, bool_values):
+            raise RuntimeError("format failed")
+
+    configs = GConfigs(backend=DummyBackend, output_fmt=ExplodingOutputFmt())
+
+    with pytest.raises(RuntimeError, match=r".*format failed.*"):
+        configs.get("CONFIG-1")
 
 
 def test_access_backend_class_from_gconfigs():
@@ -196,7 +278,6 @@ def test_access_backend_class_from_gconfigs():
 
     configs = GConfigs(backend=DummyBackendExample)
     assert configs.backend.example_method
-    configs.backend.example_method("foo")
 
 
 def test_iterator():
@@ -233,4 +314,225 @@ def test_json():
 
     assert next(configs), (
         "If `configs` is not iterable after `configs.json()` it's because it's not using the iterator properly."
+    )
+
+
+# gconfigs.ValueOutput tests
+# CASTING TYPES TESTS
+
+
+def test_get_typed_configs():
+    """Check if `ValueOutput` is properly preserving types and values."""
+    out_fmt = ValueOutput()
+    assert out_fmt.format_value("config-1") == "config-1"
+    assert out_fmt.format_value(None) is None
+    assert out_fmt.format_value(True) is True
+    assert out_fmt.format_value(False) is False
+    assert out_fmt.format_value(1) == 1
+    assert out_fmt.format_value(1.1) == 1.1
+    assert out_fmt.format_value([1, 1.1, "a"]) == [1, 1.1, "a"]
+    assert out_fmt.format_value((1, 1.1, "a")) == (1, 1.1, "a")
+    assert out_fmt.format_value({1, 1.1, "a"}) == {1, 1.1, "a"}
+    assert out_fmt.format_value({"a": 1, "b": "b"}) == {"a": 1, "b": "b"}
+
+
+def test_cast_boolean_based_on_BOOLEAN_VALUES():
+    """Considering the default `BOOL_VALUES` in `ValueOutput`, check if the boolean values are properly casted.
+
+    `gconfigs.BOOL_VALUES` is a tuple of tuples, where each inner tuple has the true and false values for that type.
+    BOOL_VALUES = (
+        ("true", "false"),
+        ("1", "0"),
+        ("yes", "no"),
+        ("y", "n"),
+        ("on", "off"),
+    )
+    """
+    out_fmt = ValueOutput()
+
+    assert out_fmt.format_value(True, cast=bool) is True
+    assert out_fmt.format_value(False, cast=bool) is False
+    assert out_fmt.format_value("true", cast=bool) is True
+    assert out_fmt.format_value("false", cast=bool) is False
+    # almost unecessary to test all the values, but let's do it anyway to guarantee the defaults:
+    assert out_fmt.format_value("1", cast=bool) is True
+    assert out_fmt.format_value("0", cast=bool) is False
+    assert out_fmt.format_value("yes", cast=bool) is True
+    assert out_fmt.format_value("no", cast=bool) is False
+    assert out_fmt.format_value("y", cast=bool) is True
+    assert out_fmt.format_value("n", cast=bool) is False
+    assert out_fmt.format_value("on", cast=bool) is True
+    assert out_fmt.format_value("off", cast=bool) is False
+
+    with pytest.raises(ValueError, match=r".*Could not cast the value.*"):
+        out_fmt.format_value("invalid", cast=bool)
+
+
+def test_cast_list_builtin_types():
+    out_fmt = ValueOutput()
+    assert out_fmt.format_value([1, 1.1, "a"], cast=list) == [1, 1.1, "a"]
+    assert out_fmt.format_value((1, 1.1, "a"), cast=list) == [1, 1.1, "a"]
+    _list = out_fmt.format_value({1, 1.1, "a"}, cast=list)
+    # sets don't preserve order, so we need to check if all the values are in the list, instead of checking for equality
+    assert all(value in _list for value in (1, 1.1, "a"))
+
+
+def test_cast_list_list_separator():
+    out_fmt = ValueOutput()
+    assert out_fmt.format_value("1,1.1,a", cast=list) == ["1", "1.1", "a"]
+    assert out_fmt.format_value("1;1.1;a", cast=list, list_sep=";") == ["1", "1.1", "a"]
+    # if the value is not a string, it should just return the value as is, even if we pass a list_sep
+    assert out_fmt.format_value([1, 1.1, "a"], cast=list, list_sep=";") == [1, 1.1, "a"]
+
+
+def test_cast_list_value_json_style():
+    """These tests won't be extensive, because we would just be testing the `json.loads` behavior."""
+    out_fmt = ValueOutput()
+    assert out_fmt.format_value('[1, 1.1, "a", null]', cast=list) == [1, 1.1, "a", None]
+
+    # Common mistake: single quotes instead of double quotes in JSON style list
+    with pytest.raises(ValueError, match=r".*Expecting value:*"):
+        assert out_fmt.format_value("[1, 1.1, 'a']", cast=list)
+
+
+def test_cat_tuple_builtin_types():
+    out_fmt = ValueOutput()
+    assert out_fmt.format_value((1, 1.1, "a"), cast=tuple) == (1, 1.1, "a")
+    assert out_fmt.format_value([1, 1.1, "a"], cast=tuple) == (1, 1.1, "a")
+    _tuple = out_fmt.format_value({1, 1.1, "a"}, cast=tuple)
+    # sets don't preserve order, so we need to check if all the values are in the tuple, instead of checking for equality
+    assert all(value in _tuple for value in (1, 1.1, "a"))
+
+
+def test_cast_tuple_list_separator():
+    out_fmt = ValueOutput()
+    assert out_fmt.format_value("1,1.1,a", cast=tuple) == ("1", "1.1", "a")
+    assert out_fmt.format_value("1;1.1;a", cast=tuple, list_sep=";") == (
+        "1",
+        "1.1",
+        "a",
+    )
+    # if the value is not a string, it should just return the value as is, even if we pass a list_sep
+    assert out_fmt.format_value((1, 1.1, "a"), cast=tuple, list_sep=";") == (
+        1,
+        1.1,
+        "a",
+    )
+
+
+def test_cast_tuple_value_json_style():
+    """These tests won't be extensive, because we would just be testing the `json.loads` behavior.
+
+    * There are no tuples in JSON, so we will just be testing if it can cast a JSON style list into a tuple.
+    """
+    out_fmt = ValueOutput()
+    assert out_fmt.format_value('[1, 1.1, "a", null]', cast=tuple) == (
+        1,
+        1.1,
+        "a",
+        None,
+    )
+
+    # Common mistake: single quotes instead of double quotes in JSON style list
+    with pytest.raises(ValueError, match=r".*Expecting value:*"):
+        assert out_fmt.format_value("[1, 1.1, 'a']", cast=tuple)
+
+
+def test_cast_set_builtin_types():
+    out_fmt = ValueOutput()
+    assert out_fmt.format_value({1, 1.1, "a"}, cast=set) == {1, 1.1, "a"}
+    assert out_fmt.format_value((1, 1.1, "a"), cast=set) == {1, 1.1, "a"}
+    assert out_fmt.format_value([1, 1.1, "a"], cast=set) == {1, 1.1, "a"}
+
+
+def test_cast_set_list_separator():
+    out_fmt = ValueOutput()
+    assert out_fmt.format_value("1,1.1,a", cast=set) == {"1", "1.1", "a"}
+    assert out_fmt.format_value("1;1.1;a", cast=set, list_sep=";") == {"1", "1.1", "a"}
+    # if the value is not a string, it should just return the value as is, even if we pass a list_sep
+    assert out_fmt.format_value({1, 1.1, "a"}, cast=set, list_sep=";") == {1, 1.1, "a"}
+
+
+def test_cast_set_value_json_style():
+    """These tests won't be extensive, because we would just be testing the `json.loads` behavior."""
+    out_fmt = ValueOutput()
+    assert out_fmt.format_value('[1, 1.1, "a", null]', cast=set) == {1, 1.1, "a", None}
+
+    # Common mistake: single quotes instead of double quotes in JSON style list
+    with pytest.raises(ValueError, match=r".*Expecting value:*"):
+        assert out_fmt.format_value("[1, 1.1, 'a']", cast=set)
+
+
+def test_cast_dict_value():
+    out_fmt = ValueOutput()
+    assert out_fmt.format_value({"a": 1, "b": "b"}, cast=dict) == {"a": 1, "b": "b"}
+    assert out_fmt.format_value('{"a": 1, "none": null}', cast=dict) == {
+        "a": 1,
+        "none": None,
+    }
+    with pytest.raises(ValueError, match=r".*Could not cast the value.*"):
+        out_fmt.format_value("invalid", cast=dict)
+
+
+def test_custom_cast_function():
+    out_fmt = ValueOutput()
+
+    def custom_cast(value):
+        if value == "custom":
+            return "casted"
+        raise ValueError("Invalid value for custom cast")
+
+    assert out_fmt.format_value("custom", cast=custom_cast) == "casted"
+    with pytest.raises(ValueError, match=r".*Invalid value for custom cast.*"):
+        out_fmt.format_value("invalid", cast=custom_cast)
+
+
+def test_custom_cast_decimal():
+    out_fmt = ValueOutput()
+
+    from decimal import Decimal
+
+    assert out_fmt.format_value("1.1", cast=Decimal) == Decimal("1.1")
+    with pytest.raises(ValueError, match=r".*Could not cast the value.*"):
+        out_fmt.format_value("invalid", cast=Decimal)
+
+
+# STRIP TESTS
+def test_strip_value_by_default():
+    out_fmt = ValueOutput()
+    assert out_fmt.strip is True
+
+    # strip default: True
+    assert out_fmt.format_value(" value ") == "value", (
+        "Returning value should be stripped by default."
+    )
+    assert out_fmt.format_value("  ") == "", (
+        "Returning value should be stripped by default, even if it's only blank spaces."
+    )
+
+    # override default
+    assert out_fmt.format_value(" value ", strip=False) == " value ", (
+        "Returning value should ALLOW blank spaces."
+    )
+    assert out_fmt.format_value("  ", strip=False) == "  ", (
+        "Returning value should ALLOW blank spaces."
+    )
+
+    # after override default it should still be True
+    assert out_fmt.strip is True, (
+        "Default `strip` behavior should be True. Check if `ValueOutput` is being properly used."
+    )
+
+
+def test_do_not_strip_by_default():
+    # no strip
+    out_fmt = ValueOutput(strip=False)
+    assert out_fmt.strip is False
+
+    # strip default: False
+    assert out_fmt.format_value(" value ") == " value ", (
+        "Returning value should ALLOW blank spaces."
+    )
+    assert out_fmt.format_value("  ") == "  ", (
+        "Returning value should ALLOW blank spaces."
     )

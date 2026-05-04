@@ -37,7 +37,7 @@ import gconfigs
 
 # 1) Environment variables
 envs = gconfigs.envs()
-debug = envs.as_bool("DEBUG", default=False)
+debug = envs("DEBUG", default=False, cast=bool)
 home = envs("HOME", default="/")
 
 # 2) Mounted directory (for configs or secrets)
@@ -64,6 +64,12 @@ The package exposes four factory functions:
 
 Each factory returns a GConfigs instance.
 
+Main call signature:
+
+```python
+GConfigs.get(key, *, default=NOTSET, use_instead=NOTSET, strip=None, cast=None, list_sep=None, bool_values=None, **backend_kwargs)
+```
+
 ## Usage
 
 ### Environment Variables
@@ -74,8 +80,8 @@ import gconfigs
 envs = gconfigs.envs()
 
 home = envs("HOME")
-workers = int(envs("WORKERS", default="2"))
-debug = envs.as_bool("DEBUG", default=False)
+workers = envs("WORKERS", default="2", cast=int)
+debug = envs("DEBUG", default=False, cast=bool)
 ```
 
 ### Dotenv Files
@@ -160,36 +166,101 @@ raw_value = envs("MY_KEY", strip=False)
 
 ## Type Casting
 
-`GConfigs` provides strict casting helpers.
+Use cast in GConfigs.get (or by calling the instance directly) to convert values.
 
-### as_bool
+### Boolean
 
 - Accepts native bool values
-- Accepts strings "true" and "false" (case-insensitive)
-- Raises ValueError for other values
+- Accepts case-insensitive string pairs from bool_values
+- Default bool_values pairs:
+  - ("true", "false")
+  - ("1", "0")
+  - ("yes", "no")
+  - ("y", "n")
+  - ("on", "off")
 
 ```python
-debug = envs.as_bool("DEBUG", default=False)
+debug = envs("DEBUG", default=False, cast=bool)
+feature_enabled = envs(
+    "FEATURE_X",
+    cast=bool,
+    bool_values=(("enabled", "disabled"),),
+)
 ```
 
-### as_list
+### list, tuple, and set
 
-- Accepts native list and tuple values
+- Accepts native iterable values for conversion between list/tuple/set
 - Accepts JSON-style list strings like "[1, 2, 3]"
-- Raises ValueError otherwise
+- Accepts separator-delimited strings using list_sep
 
 ```python
-hosts = envs.as_list("ALLOWED_HOSTS")
+hosts = envs("ALLOWED_HOSTS", cast=list)
+hosts_csv = envs("ALLOWED_HOSTS_CSV", cast=list, list_sep=",")
+hosts_pipe = envs("ALLOWED_HOSTS_PIPE", cast=list, list_sep="|")
+
+coords = envs("COORDS", cast=tuple)
+labels = envs("LABELS", cast=set)
 ```
 
-### as_dict
+### dict
 
 - Accepts native dict values
 - Accepts JSON-style object strings like "{\"workers\": 2}"
-- Raises ValueError otherwise
 
 ```python
-options = envs.as_dict("APP_OPTIONS")
+options = envs("APP_OPTIONS", cast=dict)
+```
+
+### Custom cast function or type
+
+```python
+from decimal import Decimal
+
+price = envs("PRICE", cast=Decimal)
+
+
+def normalize_slug(value):
+    return str(value).strip().lower().replace(" ", "-")
+
+
+slug = envs("PROJECT_NAME", cast=normalize_slug)
+```
+
+## Output Formatting with ValueOutput
+
+GConfigs delegates output conversion and strip behavior to ValueOutput.
+
+Default behavior:
+
+- strip=True
+- list_sep=","
+- bool_values as described in the casting section
+
+You can pass a custom ValueOutput instance to GConfigs:
+
+```python
+from gconfigs.gconfigs import GConfigs, ValueOutput
+
+
+class DictBackend:
+    def __init__(self):
+        self.data = {"DEBUG": "enabled", "HOSTS": "a|b|c"}
+
+    def keys(self):
+        return self.data.keys()
+
+    def get(self, key, **backend_kwargs):
+        if key not in self.data:
+            raise KeyError(f"{key} not set")
+        return self.data[key]
+
+
+output_fmt = ValueOutput(list_sep="|", bool_values=(("enabled", "disabled"),))
+configs = GConfigs(backend=DictBackend, output_fmt=output_fmt)
+
+debug = configs("DEBUG", cast=bool)
+hosts = configs("HOSTS", cast=list)
 ```
 
 ## Iteration and Utilities
@@ -234,7 +305,7 @@ You can plug your own backend into `GConfigs`.
 
 Required backend methods:
 
-- get(key: str)
+- get(key: str, **backend_kwargs)
 - keys()
 
 Example:
@@ -253,7 +324,7 @@ class DictBackend:
     def keys(self):
         return self.data.keys()
 
-    def get(self, key):
+    def get(self, key, **backend_kwargs):
         if key not in self.data:
             raise KeyError(f"{key} not set")
         return self.data[key]
@@ -261,7 +332,7 @@ class DictBackend:
 
 configs = GConfigs(backend=DictBackend)
 name = configs("NAME")
-debug = configs.as_bool("DEBUG")
+debug = configs("DEBUG", cast=bool)
 
 # You can access the backend instance directly from GConfigs instance
 assert configs.backend.additional_method
