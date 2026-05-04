@@ -38,6 +38,13 @@ Nothing shows better than some snippets:
 
 from importlib.metadata import version
 
-from .api import dotenvs, envs, ini_file, local_file, local_files  # noqa: F401
+from .api import (  # noqa: F401
+    dotenvs,
+    envs,
+    ini_file,
+    local_file,
+    local_files,
+    toml_file,
+)
 
 __version__ = version("gconfigs")

@@ -7,6 +7,7 @@ gConfigs provides a unified API to read configuration values from different sour
 - Environment variables
 - Dotenv files
 - INI files
+- TOML files
 - Local mounted files in a directory
 - Individual local files
 
@@ -15,7 +16,7 @@ Why another config library?
 
 ## Installation
 
-Python 3.10+
+Python 3.11+
 
 ```bash
 pip install gconfigs
@@ -56,15 +57,20 @@ project_name = dotenvs("PROJECT_NAME", default="my-app")
 # 5) INI file
 ini = gconfigs.ini_file("./config/settings.ini")
 app_name = ini("app.name", default="my-app")
+
+# 6) TOML file
+toml = gconfigs.toml_file("./config/settings.toml")
+db_port = toml("database.port", cast=int)
 ```
 
 ## API Overview
 
-The package exposes five factory functions:
+The package exposes six factory functions:
 
 - gconfigs.envs() -> reads from process environment variables
 - gconfigs.dotenvs(filepath=".env") -> reads from dotenv files
 - gconfigs.ini_file(filepath=".ini") -> reads from INI files using section.option keys
+- gconfigs.toml_file(filepath=".toml") -> reads from TOML files using dotted keys
 - gconfigs.local_files(path="/run/configs", pattern="*") -> reads from files in a directory
 - gconfigs.local_file() -> reads from a single file path provided at call time
 
@@ -120,6 +126,25 @@ INI parser behavior:
 - Values are read as strings by default
 - Use cast to convert values
 - Missing section/option raises KeyError
+
+### TOML Files
+
+```python
+import gconfigs
+
+toml = gconfigs.toml_file("./config/settings.toml")
+
+app_name = toml("name")
+db_host = toml("database.host")
+db_port = toml("database.port", cast=int)
+pool_size = toml("database.pool.size", cast=int)
+```
+
+TOML parser behavior:
+
+- Keys use dotted access for nested tables
+- Values preserve native TOML types (e.g. int, bool, list)
+- Missing nested keys raise KeyError
 
 Dotenv parser behavior:
 

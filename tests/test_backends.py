@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from gconfigs.backends import DotEnv, File, INIFile, LocalEnv, LocalFiles
+from gconfigs.backends import DotEnv, File, INIFile, LocalEnv, LocalFiles, TOMLFile
 
 
 def test_local_env():
@@ -175,3 +175,24 @@ def test_ini_file():
 def test_ini_file_missing_file():
     with pytest.raises(FileNotFoundError):
         INIFile("./tests/files/config-files/NON-EXISTENT-INI-FILE")
+
+
+def test_toml_file():
+    backend = TOMLFile("./tests/files/config-files/.toml")
+
+    keys = tuple(backend.keys())
+    assert "name" in keys
+    assert "database.port" in keys
+    assert "database.pool.size" in keys
+
+    assert backend.get("name") == "gconfigs"
+    assert backend.get("database.port") == 5432
+    assert backend.get("database.pool.size") == 10
+
+    with pytest.raises(KeyError):
+        backend.get("database.non-existent")
+
+
+def test_toml_file_missing_file():
+    with pytest.raises(FileNotFoundError):
+        TOMLFile("./tests/files/config-files/NON-EXISTENT-TOML-FILE")

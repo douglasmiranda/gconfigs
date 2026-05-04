@@ -1,4 +1,4 @@
-from .backends import DotEnv, File, INIFile, LocalEnv, LocalFiles
+from .backends import DotEnv, File, INIFile, LocalEnv, LocalFiles, TOMLFile
 from .gconfigs import GConfigs
 
 
@@ -95,3 +95,22 @@ def ini_file(filepath=".ini"):
         ```
     """
     return GConfigs(backend=INIFile(filepath=filepath), object_type_name="INIConfig")
+
+
+def toml_file(filepath=".toml"):
+    """Provides access to configuration values defined in a .toml file.
+
+    Args:
+        filepath (str): The path to the .toml file. Defaults to ".toml".
+    Returns:
+        GConfigs: An instance of GConfigs with TOMLFile backend and object_type_name 'TOMLConfig'.
+
+    Example:
+        ```python
+        import gconfigs
+        toml = gconfigs.toml_file("./path/to/config.toml")
+        app_name = toml("app.name")
+        print("app.name:", app_name)
+        ```
+    """
+    return GConfigs(backend=TOMLFile(filepath=filepath), object_type_name="TOMLConfig")

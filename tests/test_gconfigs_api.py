@@ -35,6 +35,7 @@ def test_defaults():
     gconfigs.envs
     gconfigs.dotenvs
     gconfigs.ini_file
+    gconfigs.toml_file
     gconfigs.local_files
     gconfigs.local_file
     # basic expected

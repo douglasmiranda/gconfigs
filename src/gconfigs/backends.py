@@ -27,6 +27,7 @@ Notes:
 
 import configparser
 import os
+import tomllib
 from fnmatch import fnmatch
 from pathlib import Path
 
@@ -175,6 +176,41 @@ class INIFile:
         loaded_files = self._data.read(self._ini_file)
         if not loaded_files:
             raise FileNotFoundError(f"The file {self._ini_file} doesn't exist.")
+
+
+class TOMLFile:
+    def __init__(self, filepath=".toml"):
+        self._toml_file = None
+        self._data = {}
+        self.load_file(filepath)
+
+    def keys(self):
+        yield from self._iter_leaf_keys(self._data)
+
+    def _iter_leaf_keys(self, data, prefix=""):
+        for key, value in data.items():
+            current_key = f"{prefix}.{key}" if prefix else key
+            if isinstance(value, dict):
+                yield from self._iter_leaf_keys(value, current_key)
+            else:
+                yield current_key
+
+    def get(self, key, **kwargs):
+        value = self._data
+        for key_part in key.split("."):
+            if not isinstance(value, dict) or key_part not in value:
+                raise KeyError(
+                    f"The config '{key}' is not set on {self._toml_file}. Check "
+                    "for any misconfiguration or misspelling of the variable name."
+                )
+            value = value[key_part]
+
+        return value
+
+    def load_file(self, filepath):
+        self._toml_file = filepath
+        with open(self._toml_file, "rb") as file:
+            self._data = tomllib.load(file)
 
 
 class File:
