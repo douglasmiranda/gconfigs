@@ -56,7 +56,7 @@ class DummyBackend:
         """
         :returns: from iterable `self.data` (an immutable dict) return its keys.
         """
-        return self.data
+        return self.data.keys()
 
     def get(self, key, **kwargs):
         """Return value given a key
