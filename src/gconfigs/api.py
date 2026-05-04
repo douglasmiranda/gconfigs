@@ -1,4 +1,4 @@
-from .backends import DotEnv, File, LocalEnv, LocalFiles
+from .backends import DotEnv, File, INIFile, LocalEnv, LocalFiles
 from .gconfigs import GConfigs
 
 
@@ -76,3 +76,22 @@ def local_file():
         ```
     """
     return GConfigs(backend=File(), object_type_name="FileConfig")
+
+
+def ini_file(filepath=".ini"):
+    """Provides access to configuration values defined in an .ini file.
+
+    Args:
+        filepath (str): The path to the .ini file. Defaults to ".ini".
+    Returns:
+        GConfigs: An instance of GConfigs with INIFile backend and object_type_name 'INIConfig'.
+
+    Example:
+        ```python
+        import gconfigs
+        ini = gconfigs.ini_file("./path/to/config.ini")
+        app_name = ini("app.name")
+        print("app.name:", app_name)
+        ```
+    """
+    return GConfigs(backend=INIFile(filepath=filepath), object_type_name="INIConfig")

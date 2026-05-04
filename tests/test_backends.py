@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from gconfigs.backends import DotEnv, File, LocalEnv, LocalFiles
+from gconfigs.backends import DotEnv, File, INIFile, LocalEnv, LocalFiles
 
 
 def test_local_env():
@@ -154,3 +154,24 @@ def test_file_get_unreadable_file(monkeypatch, tmp_path):
     backend = File()
     with pytest.raises(PermissionError):
         backend.get(str(filepath))
+
+
+def test_ini_file():
+    backend = INIFile("./tests/files/config-files/.ini")
+
+    keys = tuple(backend.keys())
+    assert "app.name" in keys
+    assert "database.port" in keys
+    assert backend.get("app.name") == "gconfigs"
+    assert backend.get("database.port") == "5432"
+
+    with pytest.raises(KeyError):
+        backend.get("app.non-existent")
+
+    with pytest.raises(KeyError):
+        backend.get("invalid-key-format")
+
+
+def test_ini_file_missing_file():
+    with pytest.raises(FileNotFoundError):
+        INIFile("./tests/files/config-files/NON-EXISTENT-INI-FILE")

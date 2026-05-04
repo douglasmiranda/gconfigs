@@ -6,6 +6,7 @@ gConfigs provides a unified API to read configuration values from different sour
 
 - Environment variables
 - Dotenv files
+- INI files
 - Local mounted files in a directory
 - Individual local files
 
@@ -51,14 +52,19 @@ db_password = secrets("/run/secrets/DB_PASSWORD")
 # 4) Dotenv file
 dotenvs = gconfigs.dotenvs(".env")
 project_name = dotenvs("PROJECT_NAME", default="my-app")
+
+# 5) INI file
+ini = gconfigs.ini_file("./config/settings.ini")
+app_name = ini("app.name", default="my-app")
 ```
 
 ## API Overview
 
-The package exposes four factory functions:
+The package exposes five factory functions:
 
 - gconfigs.envs() -> reads from process environment variables
 - gconfigs.dotenvs(filepath=".env") -> reads from dotenv files
+- gconfigs.ini_file(filepath=".ini") -> reads from INI files using section.option keys
 - gconfigs.local_files(path="/run/configs", pattern="*") -> reads from files in a directory
 - gconfigs.local_file() -> reads from a single file path provided at call time
 
@@ -95,6 +101,25 @@ dsn = dotenvs("DATABASE_DSN")
 # load another dotenv file with a different GConfigs instance
 other = gconfigs.dotenvs("./config/another.env")
 ```
+
+### INI Files
+
+```python
+import gconfigs
+
+ini = gconfigs.ini_file("./config/settings.ini")
+
+app_name = ini("app.name")
+db_host = ini("database.host")
+db_port = ini("database.port", cast=int)
+```
+
+INI parser behavior:
+
+- Keys use section.option format
+- Values are read as strings by default
+- Use cast to convert values
+- Missing section/option raises KeyError
 
 Dotenv parser behavior:
 

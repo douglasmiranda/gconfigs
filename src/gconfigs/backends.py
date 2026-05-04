@@ -25,6 +25,7 @@ Notes:
     and of course if you provide a default value it will not throw a exception.
 """
 
+import configparser
 import os
 from fnmatch import fnmatch
 from pathlib import Path
@@ -138,6 +139,42 @@ class DotEnv:
                     continue
 
                 self._data[key] = value.rstrip("\r\n")
+
+
+class INIFile:
+    def __init__(self, filepath=".ini"):
+        self._ini_file = None
+        self._data = configparser.ConfigParser()
+        self.load_file(filepath)
+
+    def keys(self):
+        for section in self._data.sections():
+            for option in self._data[section]:
+                yield f"{section}.{option}"
+
+    def get(self, key, **kwargs):
+        if "." not in key:
+            raise KeyError(
+                f"INIFile keys must use 'section.option' format. Received '{key}'."
+            )
+
+        section, option = key.split(".", 1)
+        if not self._data.has_section(section) or not self._data.has_option(
+            section, option
+        ):
+            raise KeyError(
+                f"The config '{key}' is not set on {self._ini_file}. Check "
+                "for any misconfiguration or misspelling of the variable name."
+            )
+
+        return self._data.get(section, option)
+
+    def load_file(self, filepath):
+        self._ini_file = filepath
+        self._data = configparser.ConfigParser()
+        loaded_files = self._data.read(self._ini_file)
+        if not loaded_files:
+            raise FileNotFoundError(f"The file {self._ini_file} doesn't exist.")
 
 
 class File:

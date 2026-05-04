@@ -34,6 +34,7 @@ def test_defaults():
     # api main endpoints
     gconfigs.envs
     gconfigs.dotenvs
+    gconfigs.ini_file
     gconfigs.local_files
     gconfigs.local_file
     # basic expected
