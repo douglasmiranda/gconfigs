@@ -88,6 +88,25 @@ def test_get_configs_info():
     assert configs("NON-EXISTENT-CONFIG", default=False) is False
 
 
+def test_len_with_generator_keys():
+    class GeneratorKeysBackend:
+        def keys(self):
+            yield from ("A", "B", "C")
+
+        def get(self, key, **kwargs):
+            return key
+
+    configs = GConfigs(backend=GeneratorKeysBackend)
+    assert len(configs) == 3
+    assert "B" in configs
+
+
+def test_len_with_builtin_generator_backends():
+    assert len(gconfigs.local_files("./tests/files/configs")) == 1
+    assert len(gconfigs.ini_file("./tests/files/config-files/.ini")) == 4
+    assert len(gconfigs.toml_file("./tests/files/config-files/.toml")) == 5
+
+
 def test_get_is_keyword_only_for_default_and_options():
     """Check if `get` method is properly enforcing the keyword only arguments
     after the `key` argument."""

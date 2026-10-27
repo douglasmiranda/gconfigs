@@ -118,7 +118,8 @@ class GConfigs:
         return key in self.backend.keys()
 
     def __len__(self):
-        return len(self.backend.keys())
+        # Backends may return any iterable from `keys()`, including generators.
+        return sum(1 for _ in self.backend.keys())
 
     def __repr__(self):  # pragma: no cover
         return f"<GConfigs backend={self.backend.__class__.__name__}>"
