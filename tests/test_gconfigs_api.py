@@ -627,3 +627,26 @@ def test_do_not_strip_by_default():
     assert out_fmt.format_value("  ") == "  ", (
         "Returning value should ALLOW blank spaces."
     )
+
+
+def test_strip_happens_before_cast():
+    """Mounted secrets usually end with a newline, casting must still work."""
+    out_fmt = ValueOutput()
+    assert out_fmt.format_value("true\n", cast=bool) is True
+    assert out_fmt.format_value('{"a": 1}\n', cast=dict) == {"a": 1}
+    assert out_fmt.format_value(" a,b \n", cast=list) == ["a", "b"]
+
+    received = []
+
+    def custom_cast(value):
+        received.append(value)
+        return value
+
+    out_fmt.format_value(" slug \n", cast=custom_cast)
+    assert received == ["slug"]
+
+
+def test_no_strip_passes_raw_value_to_cast():
+    out_fmt = ValueOutput()
+    with pytest.raises(ValueError, match=r".*Could not cast the value.*"):
+        out_fmt.format_value("true\n", cast=bool, strip=False)

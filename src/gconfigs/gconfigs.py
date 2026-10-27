@@ -163,11 +163,11 @@ class ValueOutput:
         list_sep = self.list_sep if list_sep is None else list_sep
         bool_values = self.bool_values if bool_values is None else bool_values
 
+        if strip and isinstance(value, str):
+            value = value.strip()
+
         if cast is not None:
             value = self._try_cast(value, cast, list_sep, bool_values)
-
-        if strip and isinstance(value, str):
-            return value.strip()
 
         return value
 

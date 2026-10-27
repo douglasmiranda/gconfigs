@@ -209,9 +209,14 @@ host = envs("SERVICE_HOST", use_instead="HOST", default="127.0.0.1")
 
 By default, returned string values are stripped.
 
+Stripping happens before casting, so values with surrounding whitespace or a
+trailing newline (common in mounted secret files) can still be cast. With
+`strip=False` the raw value is passed to the cast as is.
+
 ```python
 value = envs("MY_KEY")  # strip=True by default
 raw_value = envs("MY_KEY", strip=False)
+debug = secrets("DEBUG", cast=bool)  # file content "true\n" -> True
 ```
 
 ## Type Casting
