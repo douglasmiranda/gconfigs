@@ -243,6 +243,9 @@ feature_enabled = envs(
 - Accepts native iterable values for conversion between list/tuple/set
 - Accepts JSON-style list strings like "[1, 2, 3]"
 - Accepts separator-delimited strings using list_sep
+- A string without the separator becomes a single-item collection (e.g. "domain.com" -> ["domain.com"])
+- An empty or whitespace-only string becomes an empty collection
+- Strings starting with "[" must be valid JSON, otherwise a ValueError is raised
 
 ```python
 hosts = envs("ALLOWED_HOSTS", cast=list)

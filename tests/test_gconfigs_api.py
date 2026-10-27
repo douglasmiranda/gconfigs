@@ -393,10 +393,36 @@ def test_cast_list_list_separator():
     assert out_fmt.format_value([1, 1.1, "a"], cast=list, list_sep=";") == [1, 1.1, "a"]
 
 
-def test_cast_list_invalid_string_without_separator_or_json_style():
+def test_cast_list_single_value_without_separator():
     out_fmt = ValueOutput()
-    with pytest.raises(ValueError, match=r".*Could not cast the value.*"):
-        out_fmt.format_value("abc", cast=list)
+    assert out_fmt.format_value("domain.com", cast=list) == ["domain.com"]
+    assert out_fmt.format_value("  domain.com  ", cast=list) == ["domain.com"]
+    assert out_fmt.format_value("a,b", cast=list, list_sep=";") == ["a,b"]
+
+
+def test_cast_list_empty_value():
+    out_fmt = ValueOutput()
+    assert out_fmt.format_value("", cast=list) == []
+    assert out_fmt.format_value("   ", cast=list) == []
+
+
+def test_cast_list_malformed_json_style():
+    out_fmt = ValueOutput()
+    with pytest.raises(ValueError):
+        out_fmt.format_value("[a, b", cast=list)
+
+
+def test_cast_list_invalid_non_string_value():
+    out_fmt = ValueOutput()
+    with pytest.raises(ValueError, match=r".*Could not cast the value.*to list.*"):
+        out_fmt.format_value(8080, cast=list)
+
+
+def test_cast_list_single_value_default():
+    configs = GConfigs(backend=DummyBackend)
+    assert configs.get("NOT-EXISTENT-KEY", default="domain.com", cast=list) == [
+        "domain.com"
+    ]
 
 
 def test_cast_list_value_json_style():
@@ -434,10 +460,20 @@ def test_cast_tuple_list_separator():
     )
 
 
-def test_cast_tuple_invalid_string_without_separator_or_json_style():
+def test_cast_tuple_single_value_without_separator():
     out_fmt = ValueOutput()
-    with pytest.raises(ValueError, match=r".*Could not cast the value.*"):
-        out_fmt.format_value("abc", cast=tuple)
+    assert out_fmt.format_value("abc", cast=tuple) == ("abc",)
+
+
+def test_cast_tuple_empty_value():
+    out_fmt = ValueOutput()
+    assert out_fmt.format_value("", cast=tuple) == ()
+
+
+def test_cast_tuple_invalid_non_string_value():
+    out_fmt = ValueOutput()
+    with pytest.raises(ValueError, match=r".*Could not cast the value.*to tuple.*"):
+        out_fmt.format_value(8080, cast=tuple)
 
 
 def test_cast_tuple_value_json_style():
@@ -473,10 +509,20 @@ def test_cast_set_list_separator():
     assert out_fmt.format_value({1, 1.1, "a"}, cast=set, list_sep=";") == {1, 1.1, "a"}
 
 
-def test_cast_set_invalid_string_without_separator_or_json_style():
+def test_cast_set_single_value_without_separator():
     out_fmt = ValueOutput()
-    with pytest.raises(ValueError, match=r".*Could not cast the value.*"):
-        out_fmt.format_value("abc", cast=set)
+    assert out_fmt.format_value("abc", cast=set) == {"abc"}
+
+
+def test_cast_set_empty_value():
+    out_fmt = ValueOutput()
+    assert out_fmt.format_value("", cast=set) == set()
+
+
+def test_cast_set_invalid_non_string_value():
+    out_fmt = ValueOutput()
+    with pytest.raises(ValueError, match=r".*Could not cast the value.*to set.*"):
+        out_fmt.format_value(8080, cast=set)
 
 
 def test_cast_set_value_json_style():

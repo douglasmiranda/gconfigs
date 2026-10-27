@@ -212,50 +212,31 @@ class ValueOutput:
 
         raise ValueError(f"Could not cast the value '{value}' to boolean.")
 
-    def _cast_list(self, value, list_sep):
-        if isinstance(value, (tuple, set)):
+    def _split_sequence(self, value, list_sep, type_name):
+        if isinstance(value, (list, tuple, set)):
             return list(value)
 
         if not isinstance(value, str):
-            raise ValueError(f"Could not cast the value '{value}' to list.")
+            raise ValueError(f"Could not cast the value '{value}' to {type_name}.")
 
-        if value.startswith("[") and value.endswith("]"):
+        # Anything starting with "[" must be valid JSON, so typos raise instead
+        # of silently becoming a single-item collection.
+        if value.startswith("["):
             return json.loads(value)
 
-        if list_sep in value:
-            return [item.strip() for item in value.split(list_sep)]
+        if not value.strip():
+            return []
 
-        raise ValueError(f"Could not cast the value '{value}' to list.")
+        return [item.strip() for item in value.split(list_sep)]
+
+    def _cast_list(self, value, list_sep):
+        return self._split_sequence(value, list_sep, "list")
 
     def _cast_tuple(self, value, list_sep):
-        if isinstance(value, (list, set)):
-            return tuple(value)
-
-        if not isinstance(value, str):
-            raise ValueError(f"Could not cast the value '{value}' to tuple.")
-
-        if value.startswith("[") and value.endswith("]"):
-            return tuple(json.loads(value))
-
-        if list_sep in value:
-            return tuple(item.strip() for item in value.split(list_sep))
-
-        raise ValueError(f"Could not cast the value '{value}' to tuple.")
+        return tuple(self._split_sequence(value, list_sep, "tuple"))
 
     def _cast_set(self, value, list_sep):
-        if isinstance(value, (list, tuple)):
-            return set(value)
-
-        if not isinstance(value, str):
-            raise ValueError(f"Could not cast the value '{value}' to set.")
-
-        if value.startswith("[") and value.endswith("]"):
-            return set(json.loads(value))
-
-        if list_sep in value:
-            return set(item.strip() for item in value.split(list_sep))
-
-        raise ValueError(f"Could not cast the value '{value}' to set.")
+        return set(self._split_sequence(value, list_sep, "set"))
 
     def _cast_dict(self, value):
         if isinstance(value, str) and value.startswith("{") and value.endswith("}"):
