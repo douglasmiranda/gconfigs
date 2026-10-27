@@ -172,6 +172,28 @@ def test_ini_file():
         backend.get("invalid-key-format")
 
 
+def test_ini_file_dotted_section_and_option_names(tmp_path):
+    filepath = tmp_path / "settings.ini"
+    filepath.write_text(
+        "[app]\nname = gconfigs\n"
+        "[app.db]\nhost = localhost\n"
+        "[cache]\nredis.url = redis://cache\n"
+    )
+    backend = INIFile(str(filepath))
+
+    keys = tuple(backend.keys())
+    assert keys == ("app.name", "app.db.host", "cache.redis.url")
+    # every listed key must be retrievable
+    for key in keys:
+        backend.get(key)
+
+    assert backend.get("app.db.host") == "localhost"
+    assert backend.get("cache.redis.url") == "redis://cache"
+
+    with pytest.raises(KeyError):
+        backend.get("app.db.non-existent")
+
+
 def test_ini_file_missing_file():
     with pytest.raises(FileNotFoundError):
         INIFile("./tests/files/config-files/NON-EXISTENT-INI-FILE")

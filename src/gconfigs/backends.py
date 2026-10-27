@@ -159,16 +159,20 @@ class INIFile:
                 f"INIFile keys must use 'section.option' format. Received '{key}'."
             )
 
-        section, option = key.split(".", 1)
-        if not self._data.has_section(section) or not self._data.has_option(
-            section, option
-        ):
-            raise KeyError(
-                f"The config '{key}' is not set on {self._ini_file}. Check "
-                "for any misconfiguration or misspelling of the variable name."
-            )
+        # Section and option names may contain dots themselves (e.g. `[app.db]`),
+        # so try every split point, starting from the first dot.
+        parts = key.split(".")
+        for i in range(1, len(parts)):
+            section, option = ".".join(parts[:i]), ".".join(parts[i:])
+            if self._data.has_section(section) and self._data.has_option(
+                section, option
+            ):
+                return self._data.get(section, option)
 
-        return self._data.get(section, option)
+        raise KeyError(
+            f"The config '{key}' is not set on {self._ini_file}. Check "
+            "for any misconfiguration or misspelling of the variable name."
+        )
 
     def load_file(self, filepath):
         self._ini_file = filepath

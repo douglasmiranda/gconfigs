@@ -123,6 +123,7 @@ db_port = ini("database.port", cast=int)
 INI parser behavior:
 
 - Keys use section.option format
+- Section and option names may contain dots (e.g. `[app.db]` -> `app.db.host`)
 - Values are read as strings by default
 - Use cast to convert values
 - Missing section/option raises KeyError
