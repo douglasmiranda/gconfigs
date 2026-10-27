@@ -102,15 +102,16 @@ tasks:
       - sh: "test -z $(git tag -l {{.VERSION}})"
         msg: "Version {{.VERSION}} is already tagged. Please choose a different version."
 
-  publish:
-    desc: Publish package to PyPI.
-    prompt: Are you sure you want to publish the package to PyPI? This cannot be undone.
-    requires:
-      vars:
-        - VERSION
-        - PYPI_TOKEN
-    cmds:
-      - uv version {{.VERSION}} --frozen
-      - uv build --no-sources
-      - uv publish 'dist/gconfigs-{{.VERSION}}*' --token={{.PYPI_TOKEN}}
+  # publishing to PyPI is done in the GitHub Actions workflow
+  # publish:
+  #   desc: Publish package to PyPI.
+  #   prompt: Are you sure you want to publish the package to PyPI? This cannot be undone.
+  #   requires:
+  #     vars:
+  #       - VERSION
+  #       - PYPI_TOKEN
+  #   cmds:
+  #     - uv version {{.VERSION}} --frozen
+  #     - uv build --no-sources
+  #     - uv publish 'dist/gconfigs-{{.VERSION}}*' --token={{.PYPI_TOKEN}}
   # add checks
