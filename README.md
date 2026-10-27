@@ -125,6 +125,7 @@ INI parser behavior:
 - Keys use section.option format
 - Section and option names may contain dots (e.g. `[app.db]` -> `app.db.host`)
 - Values are read as strings by default
+- Values are read literally, without interpolation (`%` and `%(name)s` are kept as is)
 - Use cast to convert values
 - Missing section/option raises KeyError
 

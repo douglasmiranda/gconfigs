@@ -145,7 +145,7 @@ class DotEnv:
 class INIFile:
     def __init__(self, filepath=".ini"):
         self._ini_file = None
-        self._data = configparser.ConfigParser()
+        self._data = configparser.ConfigParser(interpolation=None)
         self.load_file(filepath)
 
     def keys(self):
@@ -176,7 +176,8 @@ class INIFile:
 
     def load_file(self, filepath):
         self._ini_file = filepath
-        self._data = configparser.ConfigParser()
+        # Values are returned literally, e.g. passwords containing `%`.
+        self._data = configparser.ConfigParser(interpolation=None)
         loaded_files = self._data.read(self._ini_file)
         if not loaded_files:
             raise FileNotFoundError(f"The file {self._ini_file} doesn't exist.")

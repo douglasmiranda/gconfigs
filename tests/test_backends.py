@@ -194,6 +194,17 @@ def test_ini_file_dotted_section_and_option_names(tmp_path):
         backend.get("app.db.non-existent")
 
 
+def test_ini_file_values_are_not_interpolated(tmp_path):
+    filepath = tmp_path / "settings.ini"
+    filepath.write_text(
+        "[db]\nuser = admin\npassword = abc%123\ndsn = %(user)s@localhost\n"
+    )
+    backend = INIFile(str(filepath))
+
+    assert backend.get("db.password") == "abc%123"
+    assert backend.get("db.dsn") == "%(user)s@localhost"
+
+
 def test_ini_file_missing_file():
     with pytest.raises(FileNotFoundError):
         INIFile("./tests/files/config-files/NON-EXISTENT-INI-FILE")
