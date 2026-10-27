@@ -81,6 +81,10 @@ class GConfigs:
             if default is NOTSET:
                 raise e
 
+            # `None` means "not configured", so it's returned without casting.
+            if default is None:
+                return None
+
             value = default
 
         value = self.output_fmt.format_value(value, strip, cast, list_sep, bool_values)

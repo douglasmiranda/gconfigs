@@ -124,6 +124,19 @@ def test_get_formats_default_value_when_key_is_missing():
     assert value == 1
 
 
+def test_get_default_none_is_not_casted():
+    configs = GConfigs(backend=DummyBackend)
+
+    assert configs.get("NON-EXISTENT-CONFIG", default=None, cast=int) is None
+    assert configs.get("NON-EXISTENT-CONFIG", default=None, cast=list) is None
+    assert (
+        configs.get("NON-EXISTENT-CONFIG", use_instead="NOPE", default=None, cast=bool)
+        is None
+    )
+    # other defaults are still casted
+    assert configs.get("NON-EXISTENT-CONFIG", default="1", cast=int) == 1
+
+
 def test_get_propagates_format_options_to_use_instead_fallback():
     class FallbackBackend:
         def keys(self):

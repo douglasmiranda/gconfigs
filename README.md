@@ -201,6 +201,15 @@ token = secrets("/run/secrets/SERVICE_TOKEN")
 port = envs("PORT", default="8000")
 ```
 
+Defaults go through `strip` and `cast` like any other value, so
+`envs("PORT", default="8000", cast=int)` returns `8000`. The exception is
+`default=None`, which is returned as is, so optional settings work with any cast:
+
+```python
+sentry_dsn = envs("SENTRY_DSN", default=None)
+timeout = envs("TIMEOUT", default=None, cast=int)  # None when TIMEOUT isn't set
+```
+
 ### Fallback Key with use_instead
 
 ```python
