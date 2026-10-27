@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.11"
 
 [[package]]
@@ -117,8 +117,9 @@ toml = [
 
 [[package]]
 name = "gconfigs"
-version = "2.0.0"
+version = "2.1.0"
 source = { editable = "." }
+default-groups = "all"
 
 [package.dev-dependencies]
 dev = [
