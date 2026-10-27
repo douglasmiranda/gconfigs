@@ -217,7 +217,7 @@ class ValueOutput:
             return list(value)
 
         if not isinstance(value, str):
-            raise ValueError(f"Could not cast the value '{value}' to {type_name}.")
+            raise ValueError(f"Could not cast the value '{value}' to {type_name}.")  # noqa: TRY004
 
         # Anything starting with "[" must be valid JSON, so typos raise instead
         # of silently becoming a single-item collection.

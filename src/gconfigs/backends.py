@@ -215,7 +215,7 @@ class TOMLFile:
 
 class File:
     def keys(self):
-        return tuple()
+        return ()
 
     def get(self, key, **kwargs):
         filepath = Path(key)
