@@ -122,6 +122,41 @@ def test_dotenv():
         backend.load_file("./tests/files/config-files/NON-EXISTENT-DOTENV-FILE")
 
 
+def test_dotenv_export_prefix(tmp_path):
+    filepath = tmp_path / ".env"
+    filepath.write_text("export FOO=bar\nexport\tTABBED=1\nexported=yes\n")
+    backend = DotEnv(str(filepath))
+
+    assert set(backend.keys()) == {"FOO", "TABBED", "exported"}
+    assert backend.get("FOO") == "bar"
+
+
+def test_dotenv_matching_quotes_are_removed(tmp_path):
+    filepath = tmp_path / ".env"
+    filepath.write_text(
+        'DOUBLE="abc"\n'
+        "SINGLE='abc'\n"
+        'PADDED="  keep spaces  "\n'
+        'EMPTY=""\n'
+        "MISMATCHED=\"abc'\n"
+        'ONLY_ONE="\n'
+        'NOT_AT_START= "abc"\n'
+        'JSON={"a": "b"}\n'
+        'HASH="abc#123"\n'
+    )
+    backend = DotEnv(str(filepath))
+
+    assert backend.get("DOUBLE") == "abc"
+    assert backend.get("SINGLE") == "abc"
+    assert backend.get("PADDED") == "  keep spaces  "
+    assert backend.get("EMPTY") == ""
+    assert backend.get("MISMATCHED") == "\"abc'"
+    assert backend.get("ONLY_ONE") == '"'
+    assert backend.get("NOT_AT_START") == ' "abc"'
+    assert backend.get("JSON") == '{"a": "b"}'
+    assert backend.get("HASH") == "abc#123"
+
+
 def test_file_keys_returns_empty_tuple():
     backend = File()
     assert backend.keys() == tuple()

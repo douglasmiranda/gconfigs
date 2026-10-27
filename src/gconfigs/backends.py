@@ -136,10 +136,19 @@ class DotEnv:
                 key, value = line.split("=", 1)
                 key = key.strip()
 
+                # allow shell-style `export KEY=value` lines
+                key_parts = key.split(maxsplit=1)
+                if len(key_parts) == 2 and key_parts[0] == "export":
+                    key = key_parts[1]
+
                 if not key:
                     continue
 
-                self._data[key] = value.rstrip("\r\n")
+                value = value.rstrip("\r\n")
+                if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+                    value = value[1:-1]
+
+                self._data[key] = value
 
 
 class INIFile:

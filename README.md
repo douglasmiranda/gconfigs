@@ -154,7 +154,11 @@ Dotenv parser behavior:
 - Ignores lines without =
 - Splits at the first = so values can contain =
 - Strips key whitespace
+- Accepts an optional `export ` prefix before the key (`export KEY=value`)
 - Preserves value whitespace (except trailing newline characters)
+- Removes one pair of matching quotes when the value starts and ends with the
+  same quote character (`KEY="value"` or `KEY='value'` -> `value`)
+- No escape sequences or inline comments (`#` is part of the value)
 - Last duplicated key wins
 
 ### Local Mounted Files (Directory)
