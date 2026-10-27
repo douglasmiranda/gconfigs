@@ -261,6 +261,34 @@ def test_toml_file():
         backend.get("database.non-existent")
 
 
+def test_toml_file_quoted_keys_with_dots(tmp_path):
+    filepath = tmp_path / "settings.toml"
+    filepath.write_text(
+        '"a.b" = 1\n'
+        '[servers."alpha.example.com"]\n'
+        'ip = "10.0.0.1"\n'
+        "[database]\n"
+        "port = 5432\n"
+    )
+    backend = TOMLFile(str(filepath))
+
+    keys = tuple(backend.keys())
+    assert keys == ("a.b", "servers.alpha.example.com.ip", "database.port")
+    # every listed key must be retrievable
+    for key in keys:
+        backend.get(key)
+
+    assert backend.get("a.b") == 1
+    assert backend.get("servers.alpha.example.com.ip") == "10.0.0.1"
+    # nested tables are still returned as dicts
+    assert backend.get("database") == {"port": 5432}
+
+    with pytest.raises(KeyError):
+        backend.get("servers.alpha.example.com.non-existent")
+    with pytest.raises(KeyError):
+        backend.get("database.port.too-deep")
+
+
 def test_toml_file_missing_file():
     with pytest.raises(FileNotFoundError):
         TOMLFile("./tests/files/config-files/NON-EXISTENT-TOML-FILE")

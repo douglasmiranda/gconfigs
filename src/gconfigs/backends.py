@@ -210,16 +210,32 @@ class TOMLFile:
                 yield current_key
 
     def get(self, key, **kwargs):
-        value = self._data
-        for key_part in key.split("."):
-            if not isinstance(value, dict) or key_part not in value:
-                raise KeyError(
-                    f"The config '{key}' is not set on {self._toml_file}. Check "
-                    "for any misconfiguration or misspelling of the variable name."
-                )
-            value = value[key_part]
+        try:
+            return self._lookup(self._data, key.split("."))
+        except KeyError:
+            raise KeyError(
+                f"The config '{key}' is not set on {self._toml_file}. Check "
+                "for any misconfiguration or misspelling of the variable name."
+            ) from None
 
-        return value
+    def _lookup(self, data, parts):
+        # Quoted TOML keys may contain dots (`"a.b" = 1`), so after trying the
+        # nested table path, also try joining segments into a single key.
+        if not isinstance(data, dict):
+            raise KeyError(parts)
+
+        for i in range(1, len(parts) + 1):
+            segment = ".".join(parts[:i])
+            if segment not in data:
+                continue
+            if i == len(parts):
+                return data[segment]
+            try:
+                return self._lookup(data[segment], parts[i:])
+            except KeyError:
+                continue
+
+        raise KeyError(parts)
 
     def load_file(self, filepath):
         self._toml_file = filepath

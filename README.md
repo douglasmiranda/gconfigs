@@ -145,6 +145,7 @@ pool_size = toml("database.pool.size", cast=int)
 TOML parser behavior:
 
 - Keys use dotted access for nested tables
+- Quoted keys containing dots also work (`[servers."alpha.example.com"]` -> `servers.alpha.example.com.ip`)
 - Values preserve native TOML types (e.g. int, bool, list)
 - Missing nested keys raise KeyError
 
